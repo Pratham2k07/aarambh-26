@@ -56,3 +56,7 @@ ui-debug.log
 # Project specific
 public/old-site/
 public/Aarambh_2026_Tech.pdf
+credentials.txt
+users_test.json
+/scratch/
+/graphify-out/

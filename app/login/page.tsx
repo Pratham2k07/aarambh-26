@@ -44,7 +44,14 @@ export default function LoginPage() {
         auth.signOut();
       }
     } catch (err: any) {
-      setError('Invalid email or password.');
+      console.error('Login error:', err);
+      if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+        setError('Invalid email or password.');
+      } else if (err.code === 'auth/unauthorized-domain') {
+        setError('This domain (localhost) is not authorized in Firebase Console.');
+      } else {
+        setError(err.message || 'An unexpected error occurred.');
+      }
     } finally {
       setLoading(false);
     }
@@ -71,6 +78,7 @@ export default function LoginPage() {
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-admin-muted" size={18} />
               <input
                 type="email"
+                suppressHydrationWarning={true}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full bg-admin-bg border border-admin-border rounded-lg py-2.5 pl-10 pr-4 focus:outline-none focus:border-admin-accent focus:ring-1 focus:ring-admin-accent transition-colors"
