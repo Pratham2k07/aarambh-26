@@ -5,11 +5,12 @@ import { useRouter } from 'next/navigation';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db, isFirebaseConfigured, FIREBASE_SETUP_MESSAGE } from '../../lib/firebase';
-import { Lock, Mail, Loader2 } from 'lucide-react';
+import { Lock, Mail, Loader2, Eye, EyeOff } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -64,7 +65,8 @@ export default function LoginPage() {
         {/* Simple Light Card */}
         <div className="bg-white border-2 border-gray-200 p-8">
           {!isFirebaseConfigured() && (
-            <div className="mb-6 p-3 bg-amber-50 text-amber-900 text-xs border border-amber-200 leading-relaxed">
+            <div className="mb-6 p-4 bg-orange-50 text-orange-900 text-xs font-semibold border border-orange-200 text-left rounded leading-relaxed">
+              <strong className="block text-sm font-bold mb-1 uppercase tracking-tight text-orange-950">Firebase Unconfigured</strong>
               {FIREBASE_SETUP_MESSAGE}
             </div>
           )}
@@ -83,7 +85,7 @@ export default function LoginPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-white border border-gray-200 rounded-none py-2.5 pl-10 pr-4 focus:outline-none focus:border-yellow-400 text-sm"
+                  className="w-full bg-white border border-gray-200 rounded-none py-2.5 pl-10 pr-4 focus:outline-none focus:border-yellow-400 text-sm text-gray-900"
                   placeholder="admin@jklu.edu.in"
                   required
                 />
@@ -95,20 +97,27 @@ export default function LoginPage() {
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" size={16} />
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-white border border-gray-200 rounded-none py-2.5 pl-10 pr-4 focus:outline-none focus:border-yellow-400 text-sm"
+                  className="w-full bg-white border border-gray-200 rounded-none py-2.5 pl-10 pr-10 focus:outline-none focus:border-yellow-400 text-sm text-gray-900"
                   placeholder="••••••••"
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none cursor-pointer"
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
               </div>
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-yellow-400 hover:bg-yellow-500 active:bg-yellow-600 text-black font-bold py-3 transition-colors flex justify-center items-center gap-2 cursor-pointer"
+              className="w-full bg-yellow-400 hover:bg-yellow-500 active:bg-yellow-600 text-black font-bold py-3 transition-colors flex justify-center items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? <Loader2 className="animate-spin" size={18} /> : <span className="uppercase tracking-widest text-[10px]">Sign In</span>}
             </button>

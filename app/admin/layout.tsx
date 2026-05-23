@@ -13,14 +13,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [configError, setConfigError] = useState(false);
   const router = useRouter();
   const firebaseReady = isFirebaseConfigured();
-
   useEffect(() => {
     if (!firebaseReady || !auth || !db) {
       setConfigError(true);
       setLoading(false);
       return;
     }
-
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
         router.push('/login');
@@ -44,11 +42,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (configError) {
     return (
-      <div className="min-h-screen bg-admin-bg flex items-center justify-center p-6 font-adminBody">
-        <div className="max-w-lg w-full bg-white border border-admin-border rounded-2xl p-8 shadow-sm">
-          <AlertCircle className="text-admin-accent mb-4" size={40} />
-          <h1 className="font-adminHeading text-2xl text-admin-text mb-3">Firebase not configured</h1>
-          <p className="text-admin-muted text-sm leading-relaxed">{FIREBASE_SETUP_MESSAGE}</p>
+      <div className="min-h-screen bg-admin-bg flex items-center justify-center p-6 text-center font-adminBody">
+        <div className="max-w-md bg-admin-border/20 border border-admin-border p-8 rounded-2xl backdrop-blur-md">
+          <h2 className="text-2xl font-bold text-orange-500 mb-4 font-adminHeading">Firebase Unconfigured</h2>
+          <p className="text-gray-300 text-sm mb-6 leading-relaxed">
+            {FIREBASE_SETUP_MESSAGE}
+          </p>
+          <div className="text-xs bg-black/40 p-4 rounded-xl text-left font-mono overflow-x-auto text-gray-400">
+            1. Copy .env.example to .env.local<br/>
+            2. Fill in your Firebase configuration keys
+          </div>
         </div>
       </div>
     );

@@ -24,7 +24,6 @@ export default function ScannerView() {
       setLoading(false);
       return;
     }
-
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
         router.push('/login');
@@ -151,8 +150,17 @@ export default function ScannerView() {
 
   if (!isFirebaseConfigured()) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
-        <p className="max-w-md text-sm text-gray-600 text-center">{FIREBASE_SETUP_MESSAGE}</p>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6 text-center">
+        <div className="max-w-md bg-white border-2 border-gray-200 p-8 shadow-sm">
+          <h2 className="text-2xl font-bold text-red-500 mb-4 uppercase tracking-tight">Firebase Unconfigured</h2>
+          <p className="text-gray-600 text-sm mb-6 leading-relaxed">
+            {FIREBASE_SETUP_MESSAGE}
+          </p>
+          <div className="text-xs bg-gray-100 p-4 border border-gray-200 rounded text-left font-mono overflow-x-auto text-gray-500">
+            1. Copy .env.example to .env.local<br/>
+            2. Fill in your Firebase configuration keys
+          </div>
+        </div>
       </div>
     );
   }

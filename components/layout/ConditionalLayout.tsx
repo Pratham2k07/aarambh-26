@@ -4,6 +4,7 @@ import React from 'react';
 import { usePathname } from 'next/navigation';
 import Navbar from './Navbar';
 import Footer from './Footer';
+import CustomCursor from '../ui/CustomCursor';
 
 export default function ConditionalLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -15,6 +16,7 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
 
   return (
     <>
+      <CustomCursor />
       <Navbar />
       <main className="min-h-screen">
         {children}

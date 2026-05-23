@@ -91,3 +91,6 @@ walkthrough.md
 **/public/workbox-*.js
 **/public/fallback-*.html
 **/public/sw.js.map
+
+# Large media files
+/public/teaser.mp4

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, ShieldCheck, Lock, Unlock, Sparkles } from 'lucide-react';
+import { ArrowRight, ShieldCheck, Lock, Unlock, Sparkles, Volume2, VolumeX } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -18,6 +18,21 @@ interface TimeLeft {
 export default function Home() {
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({ days: 0, hours: 0, mins: 0, secs: 0 });
   const [hasRegistered, setHasRegistered] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
+  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
+  const bgVideoRef = React.useRef<HTMLVideoElement>(null);
+
+  const handleVolumeToggle = () => {
+    if (bgVideoRef.current) {
+      const newMuted = !bgVideoRef.current.muted;
+      bgVideoRef.current.muted = newMuted;
+      setIsMuted(newMuted);
+      if (typeof window !== 'undefined') {
+        const event = new CustomEvent('bg-video-mute-change', { detail: { isMuted: newMuted } });
+        window.dispatchEvent(event);
+      }
+    }
+  };
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -43,13 +58,59 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
+  // Listen for audio toggle commands from the Navbar
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const handleToggleCommand = () => {
+        handleVolumeToggle();
+      };
+      window.addEventListener('toggle-bg-video-mute', handleToggleCommand);
+
+      // Initial synchronization on mount
+      setTimeout(() => {
+        const syncEvent = new CustomEvent('bg-video-mute-change', { detail: { isMuted: bgVideoRef.current?.muted ?? true } });
+        window.dispatchEvent(syncEvent);
+      }, 500);
+
+      return () => {
+        window.removeEventListener('toggle-bg-video-mute', handleToggleCommand);
+      };
+    }
+  }, []);
+
   return (
     <main className="flex flex-col items-center overflow-x-hidden">
       {/* Hero */}
-      <section className="relative w-full min-h-screen flex flex-col items-center justify-center py-28 px-4">
-        <div className="hero-glow w-[500px] h-[500px] bg-brand-pink/25 -top-40 -left-40" />
-        <div className="hero-glow w-[400px] h-[400px] bg-brand-orange/20 top-20 -right-32" />
-        <div className="hero-glow w-[350px] h-[350px] bg-brand-blue/20 bottom-0 left-1/3" />
+      <section className="relative w-full min-h-screen flex flex-col items-center justify-center py-28 px-4 overflow-hidden">
+        {/* Background Video */}
+        <div className="absolute inset-0 w-full h-full z-[-1] overflow-hidden pointer-events-none bg-brand-ink">
+          <video
+            ref={bgVideoRef}
+            autoPlay
+            loop
+            muted={isMuted}
+            playsInline
+            preload="auto"
+            onPlay={() => setIsVideoLoaded(true)}
+            onLoadedData={() => setIsVideoLoaded(true)}
+            className="w-full h-full object-cover scale-100 will-change-transform transition-opacity duration-1000 ease-out"
+            style={{ 
+              filter: 'brightness(0.78)', 
+              transform: 'translate3d(0, 0, 0)',
+              opacity: isVideoLoaded ? 1 : 0,
+              imageRendering: '-webkit-optimize-contrast'
+            }}
+          >
+            <source src="/teaser.mp4" type="video/mp4" />
+          </video>
+          {/* Cinematic Dark Overlay */}
+          <div 
+            className="absolute inset-0 pointer-events-none" 
+            style={{ background: 'rgba(0, 0, 0, 0.35)' }} 
+          />
+          {/* Subtle gradient overlay at bottom for depth */}
+          <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-brand-ink to-transparent pointer-events-none" />
+        </div>
 
         <motion.div
           initial={{ opacity: 0, y: 24 }}
@@ -57,9 +118,9 @@ export default function Home() {
           transition={{ duration: 0.6 }}
           className="z-10 text-center max-w-4xl flex flex-col items-center"
         >
-          <span className="page-eyebrow flex items-center justify-center gap-2">
-            <Sparkles size={14} className="text-brand-orange" />
+          <span className="page-eyebrow !flex items-center justify-center gap-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
             University of Excellence Presents
+            <Sparkles size={14} className="text-brand-orange shrink-0 ml-1" />
           </span>
 
           <Image
@@ -67,12 +128,12 @@ export default function Home() {
             alt="AARAMBH'26"
             width={520}
             height={120}
-            className="w-full max-w-md md:max-w-xl h-auto mb-8"
+            className="w-full max-w-md md:max-w-xl h-auto mb-8 drop-shadow-[0_4px_16px_rgba(0,0,0,0.6)]"
             priority
             loading="eager"
           />
 
-          <p className="page-subtitle mx-auto mb-12">
+          <p className="page-subtitle mx-auto mb-12 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] font-medium text-brand-cloud">
             The ultimate convergence of technology, culture, and innovation. Three days of energy,
             boldness, and limitless possibilities.
           </p>
@@ -117,10 +178,22 @@ export default function Home() {
               </div>
             )}
 
+            <Button
+              variant="glass"
+              className="flex items-center gap-2 text-base px-8 border border-brand-pink/30 hover:border-brand-pink transition-all bg-brand-ink/40 backdrop-blur-sm shadow-md"
+              onClick={handleVolumeToggle}
+            >
+              {isMuted ? <VolumeX size={20} className="text-brand-pink animate-pulse" /> : <Volume2 size={20} className="text-brand-orange animate-bounce" />}
+              <span>{isMuted ? "Unmute Video" : "Mute Sound"}</span>
+            </Button>
           </div>
         </motion.div>
 
 
+        {/* Credit */}
+        <div className="absolute bottom-6 right-8 z-20 px-3.5 py-1.5 rounded-full bg-brand-ink/75 border border-brand-pink/35 text-[10px] sm:text-xs text-brand-cloud font-semibold tracking-widest uppercase select-none pointer-events-none shadow-lg backdrop-blur-sm">
+          Credit: Vaibhav Khandelwal
+        </div>
       </section>
 
       {/* Brand strip */}
