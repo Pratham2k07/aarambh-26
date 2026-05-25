@@ -125,6 +125,13 @@ export default function VolunteerDashboard() {
       await updateDoc(doc(db, 'notifications', notifId), {
         read: true
       });
+      const performer = profile?.email || profile?.name || profile?.uid || 'Volunteer';
+      try {
+        const { logAdminAction } = await import('../../lib/audit');
+        await logAdminAction('VOLUNTEER_READ_NOTIFICATION', `notifications/${notifId}`, `Marked notification as read`, performer);
+      } catch (err) {
+        console.error("Failed to log notification read:", err);
+      }
     } catch (err) {
       console.error("Failed to update notification:", err);
     }
@@ -138,6 +145,13 @@ export default function VolunteerDashboard() {
         batch.delete(doc(db, 'notifications', notif.id));
       });
       await batch.commit();
+      const performer = profile?.email || profile?.name || profile?.uid || 'Volunteer';
+      try {
+        const { logAdminAction } = await import('../../lib/audit');
+        await logAdminAction('VOLUNTEER_CLEAR_NOTIFICATIONS', 'notifications', `Cleared all ${notifications.length} notifications`, performer);
+      } catch (err) {
+        console.error("Failed to log notifications clear:", err);
+      }
     } catch (err) {
       console.error("Failed to clear notifications:", err);
     }

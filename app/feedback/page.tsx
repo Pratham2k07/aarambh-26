@@ -611,6 +611,14 @@ export default function FeedbackTeamPortalPage() {
       
       const fileDate = new Date().toISOString().split('T')[0];
       XLSX.writeFile(wb, `Aarambh26_Feedback_Dynamic_${fileDate}.xlsx`);
+
+      const performer = user?.email || user?.uid || 'Feedback Operator';
+      try {
+        const { logAdminAction } = await import('../../lib/audit');
+        await logAdminAction('FEEDBACK_EXPORT_EXCEL', 'feedbacks', `Exported ${filteredSubmissions.length} feedback submissions to Excel`, performer);
+      } catch (err) {
+        console.error("Failed to log export action:", err);
+      }
     } finally {
       setExporting(false);
     }
@@ -687,6 +695,15 @@ export default function FeedbackTeamPortalPage() {
         forms: formsMap,
         updatedAt: serverTimestamp(),
       });
+
+      const performer = user?.email || user?.uid || 'Feedback Operator';
+      try {
+        const { logAdminAction } = await import('../../lib/audit');
+        await logAdminAction('FEEDBACK_SAVE_SETTINGS', 'settings/feedback', `Saved feedback settings: set active day to ${activeDayId}`, performer);
+      } catch (err) {
+        console.error("Failed to log save settings action:", err);
+      }
+
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (err) {
@@ -697,6 +714,18 @@ export default function FeedbackTeamPortalPage() {
   };
 
   const handleLogout = async () => {
+    let performer = 'Feedback Operator';
+    if (user) {
+      performer = user.email || user.uid || 'Feedback Operator';
+    } else if (isFirebaseConfigured() && auth && auth.currentUser) {
+      performer = auth.currentUser.email || auth.currentUser.uid || 'Feedback Operator';
+    }
+    try {
+      const { logAdminAction } = await import('../../lib/audit');
+      await logAdminAction('LOGOUT', 'sessions', `Feedback team ${performer} signed out successfully`, performer);
+    } catch (err) {
+      console.error("Failed to log logout action:", err);
+    }
     if (isFirebaseConfigured() && auth) {
       await auth.signOut();
     }

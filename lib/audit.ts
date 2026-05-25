@@ -1,15 +1,15 @@
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db, auth, isFirebaseConfigured } from './firebase';
 
-export async function logAdminAction(action: string, targetEntity: string, details: string) {
+export async function logAdminAction(action: string, targetEntity: string, details: string, performedByOverride?: string) {
   try {
     if (!isFirebaseConfigured() || !db || !auth) return;
     const user = auth.currentUser;
-    if (!user) return;
+    const performedBy = performedByOverride || user?.email || user?.uid || 'System';
 
     await addDoc(collection(db, 'auditLogs'), {
       action,
-      performedBy: user.email || user.uid,
+      performedBy,
       targetEntity,
       details,
       timestamp: serverTimestamp()

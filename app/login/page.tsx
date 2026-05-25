@@ -6,6 +6,7 @@ import { signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import Image from 'next/image';
 import { auth, db, isFirebaseConfigured, FIREBASE_SETUP_MESSAGE } from '../../lib/firebase';
+import { logAdminAction } from '../../lib/audit';
 
 // ============================================================================
 // BESPOKE CUSTOM GEOMETRIC SVG ICONS (Gradient-free, Sharp, Heavy-mitre, No standard libraries)
@@ -191,6 +192,11 @@ export default function LoginPage() {
               volUid: volData.uid
             };
             localStorage.setItem('aarambh_session', JSON.stringify(sessionData));
+            
+            // Log successful UID fallback login
+            const performer = volData.email || volData.name || volData.uid;
+            await logAdminAction('LOGIN_UID', 'sessions', `Volunteer ${performer} signed in successfully via UID fallback`, performer);
+
             router.push('/volunteer');
             return;
           }
@@ -208,6 +214,10 @@ export default function LoginPage() {
           const roleDoc = await getDoc(doc(db, 'roles', uid));
           if (roleDoc.exists()) {
             const role = roleDoc.data().role;
+            
+            // Log successful login
+            await logAdminAction('LOGIN', 'sessions', `User ${inputClean} signed in successfully with role: ${role}`);
+
             if (role === 'admin') {
               router.push('/admin');
             } else if (role === 'scanner') {
@@ -244,6 +254,11 @@ export default function LoginPage() {
                 volUid: volData.uid
               };
               localStorage.setItem('aarambh_session', JSON.stringify(sessionData));
+              
+              // Log successful credentials fallback login
+              const performer = volData.email || volData.name || volData.uid;
+              await logAdminAction('LOGIN_FALLBACK', 'sessions', `Volunteer ${performer} signed in successfully via credentials fallback`, performer);
+
               router.push('/volunteer');
               return;
             }

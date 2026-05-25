@@ -2,13 +2,19 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { collection, addDoc, updateDoc, serverTimestamp, doc, getDoc } from 'firebase/firestore';
-import { db } from '../../lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
+import { auth, db } from '../../../lib/firebase';
 import { Html5Qrcode } from 'html5-qrcode';
-import { Check, X, User, AlertCircle, Mail, Phone, ShieldCheck, MapPin } from 'lucide-react';
-import { useScannerSession } from '../../components/scanner/ScannerSessionProvider';
+import { Check, X, User, AlertCircle, Mail, Phone, Loader2 } from 'lucide-react';
 
-export default function ScannerView() {
-  const { scannerAccount } = useScannerSession();
+export default function AdminScannerView() {
+  const router = useRouter();
+  const [adminEmail, setAdminEmail] = useState('');
+  const [loadingSession, setLoadingSession] = useState(true);
+  const [authorized, setAuthorized] = useState(false);
+
+  // States for scanner console
   const [scannedData, setScannedData] = useState<any>(null);
   const [status, setStatus] = useState<{ type: 'success' | 'error' | 'idle', message: string }>({ type: 'idle', message: '' });
   const [cameraError, setCameraError] = useState(false);
@@ -17,9 +23,37 @@ export default function ScannerView() {
   const [isFrontCamera, setIsFrontCamera] = useState(false);
   const [cameras, setCameras] = useState<Array<{ id: string, label: string }>>([]);
   const [selectedCameraId, setSelectedCameraId] = useState<string>('');
+
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const isScanning = useRef(true);
   const transitionLock = useRef<Promise<any>>(Promise.resolve());
+
+  // 1. Session Guard and Role Authorization Check
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        router.push('/login');
+        return;
+      }
+
+      try {
+        const roleDoc = await getDoc(doc(db, 'roles', user.uid));
+        if (roleDoc.exists() && roleDoc.data().role === 'admin') {
+          setAdminEmail(user.email || 'Admin');
+          setAuthorized(true);
+        } else {
+          router.push('/login');
+        }
+      } catch (err) {
+        console.error("Admin scanner authorization check error:", err);
+        router.push('/login');
+      } finally {
+        setLoadingSession(false);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [router]);
 
   function runSafeCameraTransition(action: () => Promise<void>) {
     transitionLock.current = transitionLock.current
@@ -27,6 +61,23 @@ export default function ScannerView() {
       .catch((err) => console.error("Camera transition error:", err));
     return transitionLock.current;
   }
+
+  const forceReleaseCameraHardware = () => {
+    try {
+      const videoElements = document.querySelectorAll("video");
+      videoElements.forEach((video) => {
+        if (video.srcObject instanceof MediaStream) {
+          video.srcObject.getTracks().forEach((track) => {
+            track.stop();
+            console.log("Forced hardware track release:", track.label);
+          });
+          video.srcObject = null;
+        }
+      });
+    } catch (err) {
+      console.error("Error forced releasing camera hardware:", err);
+    }
+  };
 
   function detectCameraFacing() {
     const videoElement = document.querySelector("#qr-reader video") as HTMLVideoElement;
@@ -61,25 +112,8 @@ export default function ScannerView() {
     videoElement.addEventListener("loadedmetadata", performDetection, { once: true });
   }
 
-  const forceReleaseCameraHardware = () => {
-    try {
-      const videoElements = document.querySelectorAll("video");
-      videoElements.forEach((video) => {
-        if (video.srcObject instanceof MediaStream) {
-          video.srcObject.getTracks().forEach((track) => {
-            track.stop();
-            console.log("Forced hardware track release:", track.label);
-          });
-          video.srcObject = null;
-        }
-      });
-    } catch (err) {
-      console.error("Error forced releasing camera hardware:", err);
-    }
-  };
-
   async function startCameraInternal(deviceIdOverride?: string) {
-    if (!scannerAccount || scannedData || !cameraActive) return;
+    if (!authorized || scannedData || !cameraActive) return;
 
     if (scannerRef.current?.isScanning) {
       return;
@@ -161,8 +195,10 @@ export default function ScannerView() {
     }
   }
 
-  // 1. Global Interceptors to prevent uncaught AbortErrors from crashing Next.js dev overlay
+  // 2. Global Interceptors to prevent uncaught AbortErrors from crashing Next.js dev overlay
   useEffect(() => {
+    if (!authorized) return;
+
     // Override HTMLVideoElement.prototype.play to cleanly swallow play() AbortErrors at the source
     const originalPlay = HTMLVideoElement.prototype.play;
     
@@ -214,16 +250,16 @@ export default function ScannerView() {
       HTMLVideoElement.prototype.play = originalPlay;
       runSafeCameraTransition(stopCameraInternal);
     };
-  }, []);
+  }, [authorized]);
 
-  // 2. Camera Trigger Effect when account/active-state/scannedData changes
+  // 3. Camera Trigger Effect when account/active-state/scannedData changes
   useEffect(() => {
-    if (scannerAccount && cameraActive && !scannedData) {
+    if (authorized && cameraActive && !scannedData) {
       runSafeCameraTransition(startCameraInternal);
     } else {
       runSafeCameraTransition(stopCameraInternal);
     }
-  }, [scannerAccount, cameraActive, scannedData]);
+  }, [authorized, cameraActive, scannedData]);
 
   async function onScanSuccess(decodedText: string) {
     if (!isScanning.current) return;
@@ -270,12 +306,12 @@ export default function ScannerView() {
           await updateDoc(doc(db, 'registrations', scannedData.id), {
             hasEntered: true,
             enteredAt: serverTimestamp(),
-            enteredBy: scannerAccount.volunteerName
+            enteredBy: adminEmail
           });
           
           await addDoc(collection(db, 'scanLogs'), {
-            scannerId: scannerAccount.scannerId,
-            volunteerName: scannerAccount.volunteerName,
+            scannerId: 'ADMIN',
+            volunteerName: adminEmail,
             registrationID: scannedData.id,
             attendeeName: scannedData.name,
             timestamp: serverTimestamp(),
@@ -283,18 +319,18 @@ export default function ScannerView() {
           });
 
           try {
-            const { logAdminAction } = await import('../../lib/audit');
-            await logAdminAction('SCANNER_APPROVE', `registrations/${scannedData.id}`, `Approved entry for attendee ${scannedData.name}`, scannerAccount.volunteerName || scannerAccount.scannerId);
+            const { logAdminAction } = await import('../../../lib/audit');
+            await logAdminAction('SCANNER_APPROVE_ADMIN', `registrations/${scannedData.id}`, `Approved entry for attendee ${scannedData.name} via admin scanner console`, adminEmail);
           } catch (err) {
-            console.error("Failed to log scanner approval:", err);
+            console.error("Failed to log admin scanner approval:", err);
           }
           
           setStatus({ type: 'success', message: 'ENTRY APPROVED' });
         }
       } else {
         await addDoc(collection(db, 'scanLogs'), {
-          scannerId: scannerAccount.scannerId,
-          volunteerName: scannerAccount.volunteerName,
+          scannerId: 'ADMIN',
+          volunteerName: adminEmail,
           registrationID: scannedData.id,
           attendeeName: scannedData.name,
           timestamp: serverTimestamp(),
@@ -302,10 +338,10 @@ export default function ScannerView() {
         });
 
         try {
-          const { logAdminAction } = await import('../../lib/audit');
-          await logAdminAction('SCANNER_DECLINE', `registrations/${scannedData.id}`, `Declined entry for attendee ${scannedData.name}`, scannerAccount.volunteerName || scannerAccount.scannerId);
+          const { logAdminAction } = await import('../../../lib/audit');
+          await logAdminAction('SCANNER_DECLINE_ADMIN', `registrations/${scannedData.id}`, `Declined entry for attendee ${scannedData.name} via admin scanner console`, adminEmail);
         } catch (err) {
-          console.error("Failed to log scanner decline:", err);
+          console.error("Failed to log admin scanner decline:", err);
         }
 
         setStatus({ type: 'idle', message: 'ENTRY DECLINED' });
@@ -340,8 +376,23 @@ export default function ScannerView() {
     });
   };
 
+  if (loadingSession) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <Loader2 className="animate-spin text-brand-ink mx-auto" size={48} />
+          <p className="text-admin-muted text-xs font-bold uppercase tracking-widest font-adminBody">
+            Verifying Admin Scanner Access...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!authorized) return null;
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-10rem)] select-none font-adminBody animate-in fade-in duration-200">
+    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-14rem)] select-none font-adminBody animate-in fade-in duration-200">
       
       {/* Centered Work Container */}
       <div className="w-full max-w-lg">
@@ -362,13 +413,13 @@ export default function ScannerView() {
           {/* QR Scanner view box wrapper */}
           <div className="w-full max-w-sm aspect-square bg-white border-4 border-brand-ink overflow-hidden relative shadow-[4px_4px_0px_0px_#030404] rounded-md">
             
-            {/* Camera Viewfinder DOM element - always visible in flow to prevent Chrome AbortError play() exceptions */}
+            {/* Camera Viewfinder DOM element */}
             <div 
               id="qr-reader" 
               className={`w-full h-full bg-white relative z-10 ${isFrontCamera ? 'mirrored' : ''}`}
             ></div>
 
-            {/* Stopped Camera Placeholder overlay - positioned absolute on top (z-20) to cover the viewfinder */}
+            {/* Stopped Camera Placeholder overlay */}
             {!cameraActive && (
               <div className="absolute inset-0 h-full w-full flex flex-col items-center justify-center p-6 text-center bg-brand-cloud z-20">
                 <div className="p-3 border-2 border-brand-ink bg-white text-brand-ink rounded-md shadow-[2px_2px_0px_0px_#030404] mb-3 animate-in zoom-in-75">
@@ -378,7 +429,7 @@ export default function ScannerView() {
               </div>
             )}
 
-            {/* Error Placeholder overlay - z-20 to cover the viewfinder */}
+            {/* Error Placeholder overlay */}
             {cameraActive && cameraError && (
               <div className="absolute inset-0 h-full w-full flex flex-col items-center justify-center p-8 text-center bg-white z-20">
                 <AlertCircle className="text-brand-pink mb-2" size={32} />

@@ -100,3 +100,19 @@ walkthrough.md
 /public/credentials.txt
 /volunteer credentials.txt
 
+# System & Temporary Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+*.bak
+*.tmp
+*.temp
+*~
+~*
+

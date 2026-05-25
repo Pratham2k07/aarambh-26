@@ -173,6 +173,23 @@ const CustomCloseIcon = ({ className = '', size = 24 }: { className?: string; si
   </svg>
 );
 
+const CustomScannerIcon = ({ className = '', size = 18 }: { className?: string; size?: number }) => (
+  <svg 
+    width={size} 
+    height={size} 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2.5" 
+    strokeLinecap="square" 
+    strokeLinejoin="miter" 
+    className={className}
+  >
+    <path d="M4 4h4V2H2v6h2V4zm12-2v2h4v4h2V2h-6zM4 20h4v2H2v-6h2v4zm16 2v-2h-4v-2h6v6h-2z" />
+    <line x1="7" y1="12" x2="17" y2="12" />
+  </svg>
+);
+
 // ============================================================================
 // NAVIGATION CONFIGURATION (Cleaned, Light theme compliant)
 // ============================================================================
@@ -180,6 +197,7 @@ const CustomCloseIcon = ({ className = '', size = 24 }: { className?: string; si
 const navItems = [
   { name: 'Overview', href: '/admin', icon: CustomDashboardIcon },
   { name: 'Registration', href: '/admin/registrations', icon: CustomClipboardIcon },
+  { name: 'Ticket Scanner', href: '/admin/scanner', icon: CustomScannerIcon },
   { name: 'Entry Logs', href: '/admin/entry-logs', icon: CustomEntryLogsIcon },
   { name: 'Audit Logs', href: '/admin/audit', icon: CustomAuditIcon },
   { name: 'Feedback Analytics', href: '/admin/analytics', icon: CustomBarChartIcon },
@@ -192,6 +210,16 @@ export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleLogout = async () => {
+    let performer = 'Admin';
+    if (isFirebaseConfigured() && auth && auth.currentUser) {
+      performer = auth.currentUser.email || auth.currentUser.uid || 'Admin';
+    }
+    try {
+      const { logAdminAction } = await import('../../lib/audit');
+      await logAdminAction('LOGOUT', 'sessions', `Admin ${performer} signed out successfully`, performer);
+    } catch (err) {
+      console.error("Failed to log logout action:", err);
+    }
     if (isFirebaseConfigured() && auth) {
       await auth.signOut();
     }
