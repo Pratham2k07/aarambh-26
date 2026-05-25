@@ -2,9 +2,29 @@ import './globals.css'
 import type { Metadata, Viewport } from 'next'
 
 export const metadata: Metadata = {
-  title: "AARAMBH'26",
-  description: "AARAMBH'26 — The ultimate convergence of technology, culture, and innovation.",
+  title: {
+    default: "AARAMBH'26 | JK Lakshmipat University",
+    template: "%s | AARAMBH'26"
+  },
+  description: "Aarambh '26 is the ultimate convergence of technology, culture, and innovation. The signature first-year induction and pop-art festival at JK Lakshmipat University.",
   manifest: '/manifest.json',
+  openGraph: {
+    title: "AARAMBH'26 | JK Lakshmipat University",
+    description: "Aarambh '26 is the ultimate convergence of technology, culture, and innovation. The signature first-year induction and pop-art festival at JK Lakshmipat University.",
+    url: 'https://aarambh.jklu.edu.in',
+    siteName: "Aarambh '26 Portal",
+    locale: 'en_IN',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "AARAMBH'26 | JK Lakshmipat University",
+    description: "The signature first-year induction and pop-art festival at JK Lakshmipat University.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  }
 }
 
 export const viewport: Viewport = {

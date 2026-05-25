@@ -3,9 +3,32 @@ import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs, doc, updateDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 
 
+import { verifyCashfreeSignature } from '@/lib/security';
+
 export async function POST(req: Request) {
   try {
     const rawBody = await req.text();
+    
+    // Extract signature headers to prevent webhook spoofing attacks
+    const signature = req.headers.get('x-webhook-signature') || '';
+    const timestamp = req.headers.get('x-webhook-timestamp') || '';
+    
+    if (process.env.CASHFREE_SECRET_KEY) {
+      if (!signature || !timestamp) {
+        console.warn("Unauthorized: Missing Cashfree signature headers on webhook!");
+        return NextResponse.json({ error: 'Missing security signature headers' }, { status: 401 });
+      }
+      
+      const isValid = verifyCashfreeSignature(signature, rawBody, timestamp);
+      if (!isValid) {
+        console.error("CRITICAL SECURITY DANGER: Fake Cashfree Webhook signature mismatch detected!");
+        return NextResponse.json({ error: 'Signature verification failed' }, { status: 401 });
+      }
+      console.log("Cashfree Webhook signature successfully verified.");
+    } else {
+      console.warn("Bypassing webhook signature verification because CASHFREE_SECRET_KEY is missing in local environment.");
+    }
+
     const payload = JSON.parse(rawBody);
     
     console.log("Cashfree Webhook Received:", payload.event);

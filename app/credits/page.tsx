@@ -175,11 +175,11 @@ export default function CreditsPage() {
                 <div className="flex flex-col sm:flex-row gap-5 items-center sm:items-start text-center sm:text-left">
                   <div className="relative w-28 h-28 shrink-0 rounded-lg overflow-hidden border-2 border-brand-ink bg-brand-cloud shadow-[4px_4px_0px_0px_#030404]">
                     <Image
-                      src="/tech_placeholder.png"
+                      src="/favicon.ico"
                       alt={member.name}
                       fill
                       sizes="112px"
-                      className="object-cover grayscale hover:grayscale-0 transition-all duration-300"
+                      className="object-contain p-2 hover:scale-105 transition-all duration-300"
                     />
                   </div>
 
