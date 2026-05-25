@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
-import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../../lib/firebase';
 import { SkeletonTable } from '../../../components/admin/SkeletonLoader';
 import { Modal } from '../../../components/admin/Modal';
@@ -109,7 +109,7 @@ export default function Registrations() {
 
   // Filters State
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'entered' | 'pending'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'entered' | 'pending' | 'declined'>('all');
   
   // Pagination & Sorting
   const [currentPage, setCurrentPage] = useState(1);
@@ -146,7 +146,8 @@ export default function Registrations() {
       const matchesStatus = 
         statusFilter === 'all' ||
         (statusFilter === 'entered' && reg.hasEntered) ||
-        (statusFilter === 'pending' && !reg.hasEntered);
+        (statusFilter === 'pending' && !reg.hasEntered && reg.status !== 'declined') ||
+        (statusFilter === 'declined' && reg.status === 'declined');
 
       return matchesSearch && matchesStatus;
     });
@@ -301,6 +302,7 @@ export default function Registrations() {
             <option value="all">Filter: All Status</option>
             <option value="entered">Checked-In</option>
             <option value="pending">Pending Check-In</option>
+            <option value="declined">Declined / Blocked</option>
           </select>
         </div>
       </div>
@@ -326,6 +328,7 @@ export default function Registrations() {
                   <th className="p-4 cursor-pointer hover:text-brand-pink select-none" onClick={() => handleSort('registeredAt')}>
                     Registration Time {sortField === 'registeredAt' && (sortOrder === 'asc' ? '↑' : '↓')}
                   </th>
+                  <th className="p-4">Entry Status</th>
                   <th className="p-4 text-right">Details</th>
                 </tr>
               </thead>
@@ -340,6 +343,15 @@ export default function Registrations() {
                     </td>
                     <td className="p-4 text-admin-muted">
                       {reg.registeredAt ? reg.registeredAt.toDate().toLocaleString() : ''}
+                    </td>
+                    <td className="p-4">
+                      <span className={`inline-block px-2.5 py-1 border-2 border-brand-ink rounded-md text-[9px] font-black uppercase tracking-wider ${
+                        reg.hasEntered 
+                          ? 'bg-green-100 text-green-700 border-green-700' 
+                          : (reg.status === 'declined' ? 'bg-red-100 text-red-700 border-red-700' : 'bg-yellow-100 text-yellow-700 border-yellow-700')
+                      }`}>
+                        {reg.hasEntered ? 'Entered' : (reg.status === 'declined' ? 'Declined' : 'Pending')}
+                      </span>
                     </td>
                     <td className="p-4 text-right">
                       <button 
@@ -511,14 +523,58 @@ export default function Registrations() {
                     </p>
                   </div>
                   <div>
-                    <p className="text-[10px] font-black text-admin-muted mb-1">Entry Status</p>
-                    <span className={`inline-block px-2.5 py-1 border-2 border-brand-ink rounded-md text-[9px] font-black uppercase tracking-wider ${
-                      selectedReg.hasEntered 
-                        ? 'bg-green-100 text-green-700 shadow-[1px_1px_0px_0px_#030404]' 
-                        : 'bg-yellow-100 text-yellow-700 shadow-[1px_1px_0px_0px_#030404]'
-                    }`}>
-                      {selectedReg.hasEntered ? 'Entered' : 'Pending'}
-                    </span>
+                    <p className="text-[10px] font-black text-admin-muted mb-1.5 uppercase tracking-wider font-adminBody">Entry Status</p>
+                    <select
+                      value={selectedReg.hasEntered ? 'approved' : (selectedReg.status === 'declined' ? 'declined' : 'not entered')}
+                      onChange={async (e) => {
+                        const newStatus = e.target.value;
+                        const regRef = doc(db, 'registrations', selectedReg.id);
+                        
+                        try {
+                          if (newStatus === 'approved') {
+                            await updateDoc(regRef, {
+                              hasEntered: true,
+                              status: 'approved',
+                              enteredAt: serverTimestamp(),
+                              enteredBy: 'ADMIN_MANUAL'
+                            });
+                            await logAdminAction('MANUAL_ENTRY_APPROVE', `registrations/${selectedReg.id}`, `Manually approved check-in for ${selectedReg.name}`);
+                          } else if (newStatus === 'declined') {
+                            await updateDoc(regRef, {
+                              hasEntered: false,
+                              status: 'declined',
+                              enteredAt: null,
+                              enteredBy: null
+                            });
+                            await logAdminAction('MANUAL_ENTRY_DECLINE', `registrations/${selectedReg.id}`, `Manually declined check-in for ${selectedReg.name}`);
+                          } else {
+                            await updateDoc(regRef, {
+                              hasEntered: false,
+                              status: 'not entered',
+                              enteredAt: null,
+                              enteredBy: null
+                            });
+                            await logAdminAction('MANUAL_ENTRY_RESET', `registrations/${selectedReg.id}`, `Manually reset check-in state to pending for ${selectedReg.name}`);
+                          }
+                          
+                          setSelectedReg((prev: any) => ({
+                            ...prev,
+                            hasEntered: newStatus === 'approved',
+                            status: newStatus
+                          }));
+                          
+                          alert(`Successfully updated entry status to ${newStatus.toUpperCase()}`);
+                        } catch (err: any) {
+                          console.error("Failed to update status:", err);
+                          alert("Failed to update status: " + err.message);
+                        }
+                      }}
+                      className="bg-white text-brand-ink border-2 border-brand-ink font-adminHeading uppercase tracking-wider text-[10px] rounded-md py-1.5 px-3 shadow-[2px_2px_0px_0px_#030404] transition-all active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-[1px_1px_0px_0px_#030404] cursor-pointer outline-none focus:ring-2 focus:ring-brand-ink/20 font-black"
+                    >
+                      <option value="not entered">Not Entered (Pending)</option>
+                      <option value="approved">Approved (Checked-In)</option>
+                      <option value="declined">Declined (Blocked)</option>
+                    </select>
                   </div>
                 </div>
                 <div className="flex flex-col items-center justify-center">

@@ -50,11 +50,10 @@ export default function Navbar() {
   return (
     <>
       <nav
-        className={`fixed top-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-5xl z-50 transition-all duration-300 rounded-full border ${
-          isScrolled
-            ? 'bg-brand-ink/80 backdrop-blur-xl border-brand-pink/30 py-2.5 px-6 shadow-[0_8px_32px_rgba(255,24,140,0.15)] shadow-brand-pink/10'
-            : 'bg-brand-ink/40 backdrop-blur-md border-brand-cloud/10 py-3.5 px-6 shadow-lg'
-        }`}
+        className={`fixed top-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-5xl z-50 transition-all duration-300 rounded-full border ${isScrolled
+          ? 'bg-brand-ink/80 backdrop-blur-xl border-brand-pink/30 py-2.5 px-6 shadow-[0_8px_32px_rgba(255,24,140,0.15)] shadow-brand-pink/10'
+          : 'bg-brand-ink/40 backdrop-blur-md border-brand-cloud/10 py-3.5 px-6 shadow-lg'
+          }`}
       >
         <div className="flex justify-between items-center w-full">
           {/* Logo */}
@@ -76,9 +75,8 @@ export default function Navbar() {
               <Link
                 key={link.name}
                 href={link.href}
-                className={`relative py-1 px-3 text-xs font-bold tracking-widest uppercase transition-colors duration-200 ${
-                  pathname === link.href ? 'text-brand-pink' : 'text-brand-cloud/70 hover:text-brand-pink'
-                }`}
+                className={`relative py-1 px-3 text-xs font-bold tracking-widest uppercase transition-colors duration-200 ${pathname === link.href ? 'text-brand-pink' : 'text-brand-cloud/70 hover:text-brand-pink'
+                  }`}
               >
                 {link.name}
                 {pathname === link.href && (
@@ -128,9 +126,8 @@ export default function Navbar() {
                   key={link.name}
                   href={link.href}
                   onClick={(e) => handleNavClick(e, link.href)}
-                  className={`text-sm font-bold tracking-widest uppercase transition-colors py-2 border-b border-brand-cloud/5 ${
-                    pathname === link.href ? 'text-brand-pink' : 'text-brand-cloud/80 hover:text-brand-pink'
-                  }`}
+                  className={`text-sm font-bold tracking-widest uppercase transition-colors py-2 border-b border-brand-cloud/5 ${pathname === link.href ? 'text-brand-pink' : 'text-brand-cloud/80 hover:text-brand-pink'
+                    }`}
                 >
                   {link.name}
                 </Link>

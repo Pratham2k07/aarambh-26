@@ -33,10 +33,72 @@ import {
   Plus, 
   RotateCcw 
 } from 'lucide-react';
+import { SCHEDULE_DATA } from '@/constants/events';
 
 // ============================================================================
-// CONSTANTS & CONFIGURATION
+// CONSTANTS, CONFIGURATION & HELPERS
 // ============================================================================
+
+// Dynamic mapping from schedule day dates (e.g. "July 14") to ISO strings ("2026-07-14")
+const mapScheduleDateToISO = (dateStr: string) => {
+  if (!dateStr) return '';
+  const parts = dateStr.trim().split(/\s+/);
+  if (parts.length < 2) return '';
+  const monthName = parts[0];
+  const dayNum = parseInt(parts[1], 10);
+  
+  const months: Record<string, string> = {
+    'january': '01', 'february': '02', 'march': '03', 'april': '04', 'may': '05', 'june': '06',
+    'july': '07', 'august': '08', 'september': '09', 'october': '10', 'november': '11', 'december': '12',
+    'jan': '01', 'feb': '02', 'mar': '03', 'apr': '04', 'jun': '06', 'jul': '07', 'aug': '08', 'sep': '09', 'oct': '10', 'nov': '11', 'dec': '12'
+  };
+  
+  const monthNum = months[monthName.toLowerCase()];
+  if (!monthNum || isNaN(dayNum)) return '';
+  
+  return `2026-${monthNum}-${String(dayNum).padStart(2, '0')}`;
+};
+
+// Convert 12-hour formatted time (e.g. "7:30 AM") to 24-hour time (e.g. "07:30")
+const convert12to24 = (time12: string) => {
+  if (!time12) return '';
+  const clean = time12.trim();
+  const match = clean.match(/^(\d+):(\d+)\s*(AM|PM)$/i);
+  if (!match) return '';
+  let hours = parseInt(match[1], 10);
+  const minutes = match[2];
+  const ampm = match[3].toUpperCase();
+  
+  if (ampm === 'PM' && hours < 12) {
+    hours += 12;
+  } else if (ampm === 'AM' && hours === 12) {
+    hours = 0;
+  }
+  return `${String(hours).padStart(2, '0')}:${minutes}`;
+};
+
+// Parse single/range event times
+const parseEventTimes = (timeRangeStr: string) => {
+  if (!timeRangeStr) return { from: '09:00', to: '10:00' };
+  const parts = timeRangeStr.split('-');
+  if (parts.length === 2) {
+    const from24 = convert12to24(parts[0]);
+    const to24 = convert12to24(parts[1]);
+    return {
+      from: from24 || '09:00',
+      to: to24 || '10:00'
+    };
+  } else {
+    const from24 = convert12to24(timeRangeStr);
+    if (from24) {
+      const [h, m] = from24.split(':').map(Number);
+      const toHour = (h + 1) % 24;
+      const to24 = `${String(toHour).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+      return { from: from24, to: to24 };
+    }
+  }
+  return { from: '09:00', to: '10:00' };
+};
 
 const VENUES = [
   'Main Gate',
@@ -44,6 +106,19 @@ const VENUES = [
   'Seminar Hall',
   'Registration Desk',
   'Campus Ground'
+];
+
+const DUTY_DATES = [
+  { value: '2026-07-12', label: 'July 12' },
+  { value: '2026-07-13', label: 'July 13' },
+  { value: '2026-07-14', label: 'July 14 (Day 01)' },
+  { value: '2026-07-15', label: 'July 15 (Day 02)' },
+  { value: '2026-07-16', label: 'July 16 (Day 03)' },
+  { value: '2026-07-17', label: 'July 17 (Day 04)' },
+  { value: '2026-07-18', label: 'July 18 (Day 05)' },
+  { value: '2026-07-19', label: 'July 19 (Day 06)' },
+  { value: '2026-07-20', label: 'July 20 (Day 07)' },
+  { value: '2026-07-21', label: 'July 21 (Day 08)' }
 ];
 
 // ============================================================================
@@ -66,13 +141,14 @@ export default function DutyManagement() {
   }, [volunteers]);
 
   // Form State
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState('2026-07-14');
   const [selectedTeam, setSelectedTeam] = useState('');
   const [selectedVolunteers, setSelectedVolunteers] = useState<any[]>([]);
   const [timeFrom, setTimeFrom] = useState('09:00');
   const [timeTo, setTimeTo] = useState('13:00');
   const [selectedVenue, setSelectedVenue] = useState('');
   const [notes, setNotes] = useState('');
+  const [selectedEventTitle, setSelectedEventTitle] = useState('');
   
   // Volunteer Multi-select Search State
   const [searchVolQuery, setSearchVolQuery] = useState('');
@@ -95,6 +171,65 @@ export default function DutyManagement() {
   const [editVenue, setEditVenue] = useState('');
   const [editStatus, setEditStatus] = useState('');
   const [editNotes, setEditNotes] = useState('');
+  const [editEventTitle, setEditEventTitle] = useState('');
+
+  // Get events scheduled for the currently selected date
+  const eventsForSelectedDate = useMemo(() => {
+    if (!selectedDate) return [];
+    const dateObj = new Date(selectedDate);
+    if (isNaN(dateObj.getTime())) return [];
+    
+    const monthNames = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+    const monthStr = monthNames[dateObj.getMonth()];
+    const dayNum = dateObj.getDate();
+    const formattedDate = `${monthStr} ${dayNum}`; // e.g. "July 14"
+    
+    const daySchedule = SCHEDULE_DATA.find(
+      (d) => d.date.trim().toLowerCase() === formattedDate.trim().toLowerCase()
+    );
+    return daySchedule ? daySchedule.events : [];
+  }, [selectedDate]);
+
+  // Get events scheduled for the currently editing date
+  const eventsForEditDate = useMemo(() => {
+    if (!editDate) return [];
+    const dateObj = new Date(editDate);
+    if (isNaN(dateObj.getTime())) return [];
+    
+    const monthNames = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+    const monthStr = monthNames[dateObj.getMonth()];
+    const dayNum = dateObj.getDate();
+    const formattedDate = `${monthStr} ${dayNum}`;
+    
+    const daySchedule = SCHEDULE_DATA.find(
+      (d) => d.date.trim().toLowerCase() === formattedDate.trim().toLowerCase()
+    );
+    return daySchedule ? daySchedule.events : [];
+  }, [editDate]);
+
+  // Predefined venues merged with currently selected custom event venue if applicable
+  const venueOptions = useMemo(() => {
+    const options = [...VENUES];
+    if (selectedVenue && !options.includes(selectedVenue)) {
+      options.push(selectedVenue);
+    }
+    return options;
+  }, [selectedVenue]);
+
+  // Predefined venues merged with edit modal custom event venue if applicable
+  const editVenueOptions = useMemo(() => {
+    const options = [...VENUES];
+    if (editVenue && !options.includes(editVenue)) {
+      options.push(editVenue);
+    }
+    return options;
+  }, [editVenue]);
 
   // Validation Warnings
   const [formWarning, setFormWarning] = useState<string | null>(null);
@@ -230,9 +365,22 @@ export default function DutyManagement() {
           timeTo,
           venue: selectedVenue,
           notes: notes.trim(),
+          eventTitle: selectedEventTitle,
           assignedBy: adminEmail,
           status: 'upcoming',
           createdAt: serverTimestamp()
+        });
+
+        // Add real-time notification
+        const notifRef = doc(collection(db, 'notifications'));
+        batch.set(notifRef, {
+          volunteerId: vol.id,
+          title: selectedEventTitle ? 'New Event Duty Assigned' : 'New Duty Assigned',
+          message: selectedEventTitle 
+            ? `You have been assigned to "${selectedEventTitle}" at "${selectedVenue}" on ${formatDateFriendly(selectedDate)} from ${formatTime12hr(timeFrom)} to ${formatTime12hr(timeTo)}.`
+            : `You have been assigned to "${selectedVenue}" on ${formatDateFriendly(selectedDate)} from ${formatTime12hr(timeFrom)} to ${formatTime12hr(timeTo)}.`,
+          read: false,
+          timestamp: serverTimestamp()
         });
       });
 
@@ -243,7 +391,7 @@ export default function DutyManagement() {
       await logAdminAction(
         'CREATE_DUTY_ASSIGNMENTS', 
         'dutyAssignments', 
-        `Assigned duties to: [${volNames}] at ${selectedVenue} on ${selectedDate}`
+        `Assigned duties to: [${volNames}] at ${selectedVenue} on ${selectedDate}${selectedEventTitle ? ` (Event: ${selectedEventTitle})` : ''}`
       );
 
       // Reset form fields
@@ -257,7 +405,7 @@ export default function DutyManagement() {
   };
 
   const handleResetForm = () => {
-    setSelectedDate(new Date().toISOString().split('T')[0]);
+    setSelectedDate('2026-07-14');
     setSelectedTeam('');
     setSelectedVolunteers([]);
     setTimeFrom('09:00');
@@ -265,6 +413,7 @@ export default function DutyManagement() {
     setSelectedVenue('');
     setNotes('');
     setSearchVolQuery('');
+    setSelectedEventTitle('');
     setFormWarning(null);
   };
 
@@ -291,6 +440,7 @@ export default function DutyManagement() {
     setEditVenue(duty.venue);
     setEditStatus(duty.status);
     setEditNotes(duty.notes || '');
+    setEditEventTitle(duty.eventTitle || '');
     setEditWarning(null);
   };
 
@@ -317,14 +467,26 @@ export default function DutyManagement() {
         timeFrom: editTimeFrom,
         timeTo: editTimeTo,
         venue: editVenue,
+        eventTitle: editEventTitle,
         status: editStatus,
         notes: editNotes.trim()
+      });
+
+      // Add real-time notification
+      await addDoc(collection(db, 'notifications'), {
+        volunteerId: editingDuty.volunteerId,
+        title: editEventTitle ? 'Event Duty Assignment Updated' : 'Duty Assignment Updated',
+        message: editEventTitle 
+          ? `Your duty assignment for ${formatDateFriendly(editDate)} at "${editVenue}" ("${editEventTitle}") has been updated. Status: ${editStatus}.`
+          : `Your duty assignment for ${formatDateFriendly(editDate)} at "${editVenue}" has been updated. Status: ${editStatus}.`,
+        read: false,
+        timestamp: serverTimestamp()
       });
 
       await logAdminAction(
         'EDIT_DUTY_ASSIGNMENT', 
         `dutyAssignments/${editingDuty.id}`, 
-        `Updated duty details for ${editingDuty.volunteerName}`
+        `Updated duty details for ${editingDuty.volunteerName}${editEventTitle ? ` (Event: ${editEventTitle})` : ''}`
       );
 
       setEditingDuty(null);
@@ -338,6 +500,16 @@ export default function DutyManagement() {
 
     try {
       await deleteDoc(doc(db, 'dutyAssignments', deletingDuty.id));
+
+      // Add real-time notification
+      await addDoc(collection(db, 'notifications'), {
+        volunteerId: deletingDuty.volunteerId,
+        title: 'Duty Assignment Removed',
+        message: `Your duty assignment on ${formatDateFriendly(deletingDuty.dutyDate)} at "${deletingDuty.venue}" has been removed.`,
+        read: false,
+        timestamp: serverTimestamp()
+      });
+
       await logAdminAction(
         'DELETE_DUTY_ASSIGNMENT', 
         `dutyAssignments/${deletingDuty.id}`, 
@@ -411,9 +583,18 @@ export default function DutyManagement() {
   return (
     <div className="space-y-10 select-none font-adminBody">
       {/* Title Header */}
-      <div>
-        <h1 className="font-adminHeading text-3xl font-black uppercase tracking-tight text-brand-ink mb-1.5">Duty Management</h1>
-        <p className="text-admin-muted font-bold text-xs uppercase tracking-wider">Manage volunteer duty assignments for AARAMBH’26</p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="font-adminHeading text-3xl font-black uppercase tracking-tight text-brand-ink mb-1.5">Duty Management</h1>
+          <p className="text-admin-muted font-bold text-xs uppercase tracking-wider">Manage volunteer duty assignments for AARAMBH’26</p>
+        </div>
+        <a 
+          href="/credentials.txt" 
+          download="credentials.txt"
+          className="bg-brand-blue hover:bg-secondary-dark text-white font-black py-3 px-6 border-2 border-brand-ink shadow-[3px_3px_0px_0px_#030404] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_#030404] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none transition-all duration-100 flex items-center gap-2 cursor-pointer rounded-md text-xs uppercase tracking-wider"
+        >
+          Download Credentials
+        </a>
       </div>
 
       {/* ==================================================================== */}
@@ -440,13 +621,61 @@ export default function DutyManagement() {
               </label>
               <div className="relative">
                 <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-ink/40" size={16} />
-                <input
-                  type="date"
+                <select
                   required
                   value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  className="w-full bg-brand-cloud/40 border-2 border-brand-ink rounded-md py-3 pl-11 pr-4 text-sm text-brand-ink font-bold focus:outline-none focus:border-brand-pink focus:bg-white shadow-inner transition-colors"
-                />
+                  onChange={(e) => {
+                    setSelectedDate(e.target.value);
+                    setSelectedEventTitle(''); // Clear selected event on date change
+                  }}
+                  className="w-full bg-brand-cloud/45 border-2 border-brand-ink rounded-md py-3 pl-11 pr-4 text-sm text-brand-ink font-bold focus:outline-none focus:border-brand-pink focus:bg-white shadow-[2px_2px_0px_0px_#030404] transition-colors cursor-pointer"
+                >
+                  {DUTY_DATES.map((dt) => (
+                    <option key={dt.value} value={dt.value}>{dt.label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Optional Step: Link to Event */}
+            <div className="space-y-2">
+              <label className="block text-[10px] font-black uppercase text-brand-ink/65 tracking-wider">
+                Event (Optional)
+              </label>
+              <div className="relative">
+                <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-ink/40" size={16} />
+                <select
+                  value={selectedEventTitle}
+                  onChange={(e) => {
+                    const title = e.target.value;
+                    setSelectedEventTitle(title);
+                    if (title) {
+                      const eventObj = eventsForSelectedDate.find(evt => evt.title === title);
+                      if (eventObj) {
+                        // Autofill times
+                        const times = parseEventTimes(eventObj.time);
+                        setTimeFrom(times.from);
+                        setTimeTo(times.to);
+                        // Autofill venue location if set
+                        if (eventObj.location) {
+                          setSelectedVenue(eventObj.location);
+                        }
+                      }
+                    }
+                  }}
+                  className="w-full bg-brand-cloud/45 border-2 border-brand-ink rounded-md py-3 pl-11 pr-4 text-sm text-brand-ink font-bold focus:outline-none focus:border-brand-pink focus:bg-white shadow-[2px_2px_0px_0px_#030404] transition-colors cursor-pointer"
+                >
+                  <option value="">No Event / General Duty</option>
+                  {eventsForSelectedDate.length === 0 ? (
+                    <option value="" disabled>No events scheduled on this date</option>
+                  ) : (
+                    eventsForSelectedDate.map((evt, idx) => (
+                      <option key={idx} value={evt.title}>
+                        {evt.title} ({evt.time})
+                      </option>
+                    ))
+                  )}
+                </select>
               </div>
             </div>
 
@@ -604,7 +833,7 @@ export default function DutyManagement() {
                     className="w-full bg-brand-cloud/45 border-2 border-brand-ink rounded-md py-2.5 pl-9 pr-4 text-xs text-brand-ink font-bold focus:outline-none focus:border-brand-pink focus:bg-white shadow-[2px_2px_0px_0px_#030404] transition-colors cursor-pointer"
                   >
                     <option value="">Choose Venue...</option>
-                    {VENUES.map((ven) => (
+                    {venueOptions.map((ven) => (
                       <option key={ven} value={ven}>{ven}</option>
                     ))}
                   </select>
@@ -676,18 +905,22 @@ export default function DutyManagement() {
           </div>
           
           {/* Date Filter */}
-          <input
-            type="date"
+          <select
             value={dateFilter}
             onChange={(e) => setDateFilter(e.target.value)}
-            className="bg-white border-2 border-brand-ink rounded-md py-2.5 px-3 text-xs text-brand-ink font-bold focus:outline-none shadow-[2px_2px_0px_0px_#030404]"
-          />
+            className="bg-white border-2 border-brand-ink rounded-md py-2.5 px-3 text-xs text-brand-ink font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#030404] focus:outline-none cursor-pointer hover:bg-brand-cloud transition-colors"
+          >
+            <option value="">All Dates</option>
+            {DUTY_DATES.map((dt) => (
+              <option key={dt.value} value={dt.value}>{dt.label}</option>
+            ))}
+          </select>
 
           {/* Team Filter */}
           <select
             value={teamFilter}
             onChange={(e) => setTeamFilter(e.target.value)}
-            className="bg-white border-2 border-brand-ink rounded-md py-3 px-4 text-xs text-brand-ink font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#030404] focus:outline-none cursor-pointer hover:bg-brand-cloud transition-colors"
+            className="bg-white border-2 border-brand-ink rounded-md md:py-3 md:px-4 py-2.5 px-3 text-xs text-brand-ink font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#030404] focus:outline-none cursor-pointer hover:bg-brand-cloud transition-colors w-[145px] md:w-auto"
           >
             <option value="all">All Teams</option>
             {dynamicTeams.map((teamName) => (
@@ -701,7 +934,7 @@ export default function DutyManagement() {
             onChange={(e) => setStatusFilter(e.target.value)}
             className="bg-white border-2 border-brand-ink rounded-md py-3 px-4 text-xs text-brand-ink font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#030404] focus:outline-none cursor-pointer hover:bg-brand-cloud transition-colors"
           >
-            <option value="all">All Statuses</option>
+            <option value="all">Status</option>
             <option value="upcoming">Upcoming</option>
             <option value="active">Active</option>
             <option value="completed">Completed</option>
@@ -725,7 +958,7 @@ export default function DutyManagement() {
                   <th className="p-4">Date</th>
                   <th className="p-4">Time Window</th>
                   <th className="p-4">Venue</th>
-                  <th className="p-4">Assigned By</th>
+                  <th className="p-4">Event</th>
                   <th className="p-4 text-center">Status</th>
                   <th className="p-4 text-right">Actions</th>
                 </tr>
@@ -750,7 +983,15 @@ export default function DutyManagement() {
                         {duty.venue}
                       </span>
                     </td>
-                    <td className="p-4 text-admin-muted">{duty.assignedBy || 'System'}</td>
+                    <td className="p-4">
+                      {duty.eventTitle ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-brand-blue/15 text-brand-blue border-2 border-brand-ink rounded-md text-[9px] font-black uppercase tracking-wider shadow-[1px_1px_0px_0px_#030404] whitespace-normal max-w-[200px]">
+                          {duty.eventTitle}
+                        </span>
+                      ) : (
+                        <span className="text-admin-muted/60 font-semibold italic text-[11px]">None</span>
+                      )}
+                    </td>
                     <td className="p-4 text-center">
                       <span className={`inline-block px-2.5 py-1 border-2 border-brand-ink rounded-md text-[9px] font-black uppercase tracking-wider ${
                         duty.status === 'completed'
@@ -823,13 +1064,53 @@ export default function DutyManagement() {
 
             <div className="space-y-1">
               <label className="block text-[10px] font-black uppercase text-admin-muted tracking-wider">Duty Date</label>
-              <input
-                type="date"
+              <select
                 required
                 value={editDate}
-                onChange={(e) => setEditDate(e.target.value)}
-                className="w-full bg-brand-cloud/40 border-2 border-brand-ink rounded-md py-2 px-3 text-xs font-bold text-brand-ink focus:outline-none focus:border-brand-pink focus:bg-white shadow-inner"
-              />
+                onChange={(e) => {
+                  setEditDate(e.target.value);
+                  setEditEventTitle(''); // Clear selected event on date change
+                }}
+                className="w-full bg-white border-2 border-brand-ink rounded-md py-2 px-3 text-xs font-bold text-brand-ink focus:outline-none focus:border-brand-pink shadow-[1px_1px_0px_0px_#030404] transition-colors cursor-pointer"
+              >
+                {DUTY_DATES.map((dt) => (
+                  <option key={dt.value} value={dt.value}>{dt.label}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-1">
+              <label className="block text-[10px] font-black uppercase text-admin-muted tracking-wider">Event (Optional)</label>
+              <select
+                value={editEventTitle}
+                onChange={(e) => {
+                  const title = e.target.value;
+                  setEditEventTitle(title);
+                  if (title) {
+                    const eventObj = eventsForEditDate.find(evt => evt.title === title);
+                    if (eventObj) {
+                      const times = parseEventTimes(eventObj.time);
+                      setEditTimeFrom(times.from);
+                      setEditTimeTo(times.to);
+                      if (eventObj.location) {
+                        setEditVenue(eventObj.location);
+                      }
+                    }
+                  }
+                }}
+                className="w-full bg-white border-2 border-brand-ink rounded-md py-2 px-3 text-xs font-bold text-brand-ink focus:outline-none focus:border-brand-pink shadow-[1px_1px_0px_0px_#030404]"
+              >
+                <option value="">No Event / General Duty</option>
+                {eventsForEditDate.length === 0 ? (
+                  <option value="" disabled>No events scheduled on this date</option>
+                ) : (
+                  eventsForEditDate.map((evt, idx) => (
+                    <option key={idx} value={evt.title}>
+                      {evt.title} ({evt.time})
+                    </option>
+                  ))
+                )}
+              </select>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -861,9 +1142,10 @@ export default function DutyManagement() {
                 required
                 value={editVenue}
                 onChange={(e) => setEditVenue(e.target.value)}
-                className="w-full bg-white border-2 border-brand-ink rounded-md py-2 px-3 text-xs font-bold text-brand-ink focus:outline-none focus:border-brand-pink shadow-[1px_1px_0px_0px_#030404]"
+                className="w-full bg-white border-2 border-brand-ink rounded-md py-2 px-3 text-xs font-bold text-brand-ink focus:outline-none focus:border-brand-pink shadow-[1px_1px_0px_0px_#030404] transition-colors cursor-pointer"
               >
-                {VENUES.map((ven) => (
+                <option value="">Choose Venue...</option>
+                {editVenueOptions.map((ven) => (
                   <option key={ven} value={ven}>{ven}</option>
                 ))}
               </select>

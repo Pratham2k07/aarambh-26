@@ -301,8 +301,8 @@ export default function Footer() {
           <div className="bg-white border-4 border-brand-ink shadow-[6px_6px_0px_0px_#FF188C] rounded-lg p-2.5 max-w-[240px] w-full transform hover:rotate-1 transition-transform duration-250">
             <div className="relative aspect-video w-full rounded-md overflow-hidden border-2 border-brand-ink">
               <Image
-                src="/jklu_campus.png"
-                alt="JKLU Aerial View"
+                src="/aarambh-2025-poster.jpg"
+                alt="Aarambh '26 Poster View"
                 fill
                 sizes="(max-w-240px) 100vw, 240px"
                 className="object-cover grayscale hover:grayscale-0 transition-all duration-300"

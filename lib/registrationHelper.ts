@@ -8,7 +8,7 @@ import path from 'path';
 // ============================================================================
 // PDF RECEIPT GENERATOR helper (A4 Layout with dynamic aspect scaling)
 // ============================================================================
-export async function generatePDF(data: any, id: string, paymentId: string, orderId: string, dateOfPayment: string) {
+export async function generatePDF(data: any, id: string, paymentId: string, orderId: string, dateOfPayment?: string) {
   const pdfDoc = await PDFDocument.create();
   const page = pdfDoc.addPage([595, 842]); // Standard A4 Dimensions
   const { width, height } = page.getSize();
@@ -27,8 +27,7 @@ export async function generatePDF(data: any, id: string, paymentId: string, orde
     const jkluLogoPath = path.join(
       process.cwd(), 
       'public', 
-      'AARAMBH\'26 Design Assets', 
-      'JKLU Logo.png'
+      'jklu_logo.png'
     );
     const jkluLogoBytes = await fs.readFile(jkluLogoPath);
     jkluLogoImage = await pdfDoc.embedPng(jkluLogoBytes);
@@ -48,9 +47,7 @@ export async function generatePDF(data: any, id: string, paymentId: string, orde
     const aarambhLogoPath = path.join(
       process.cwd(), 
       'public', 
-      'AARAMBH\'26 Design Assets', 
-      'Main_Logo', 
-      'AARAMBH_26_Logo-removebg.png'
+      'aarambh_logo_removebg.png'
     );
     const aarambhLogoBytes = await fs.readFile(aarambhLogoPath);
     aarambhLogoImage = await pdfDoc.embedPng(aarambhLogoBytes);
@@ -119,12 +116,14 @@ export async function generatePDF(data: any, id: string, paymentId: string, orde
 
   // Metadata Row
   // Receipt No
+  const rollNumberStr = data.rollNumber || data.registrationNumber || id.slice(-4).toUpperCase();
   page.drawText('Receipt No.'.toUpperCase(), { x: 40, y: 590, size: 7.5, color: greyColor });
-  page.drawText(`AARAMBH2026-${data.registrationNumber || id.slice(-4).toUpperCase()}`, { x: 40, y: 575, size: 10.5, color: darkColor });
+  page.drawText(`AARAMBH2026-${rollNumberStr}`, { x: 40, y: 575, size: 10.5, color: darkColor });
 
   // Date of Issue
+  const issueDate = dateOfPayment || data.dateOfPayment || new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
   page.drawText('Date of Issue'.toUpperCase(), { x: 250, y: 590, size: 7.5, color: greyColor });
-  page.drawText(dateOfPayment, { x: 250, y: 575, size: 10.5, color: darkColor });
+  page.drawText(issueDate, { x: 250, y: 575, size: 10.5, color: darkColor });
 
   // Payment Status
   page.drawText('Payment Status'.toUpperCase(), { x: 450, y: 590, size: 7.5, color: greyColor });
@@ -163,13 +162,13 @@ export async function generatePDF(data: any, id: string, paymentId: string, orde
 
   // 1. STUDENT INFORMATION Section
   drawSectionHeader('STUDENT INFORMATION', 525);
-  drawField('Full Name', data.name, 40, 502);
-  drawField('Enrollment No.', data.registrationNumber || 'N/A', 300, 502);
+  drawField('Full Name', data.name || 'N/A', 40, 502);
+  drawField('Enrollment No.', data.rollNumber || data.registrationNumber || 'N/A', 300, 502);
   
   drawField('Branch / Programme', data.course || 'B.Tech', 40, 469);
   
-  drawField('Email Address', data.email, 40, 436);
-  drawField('Mobile Number', data.mobile || data.phone, 300, 436);
+  drawField('Email Address', data.email || 'N/A', 40, 436);
+  drawField('Mobile Number', data.phone || data.mobile || 'N/A', 300, 436);
 
   // 2. PARENT DETAILS Section
   drawSectionHeader('PARENT DETAILS', 395);
@@ -181,11 +180,18 @@ export async function generatePDF(data: any, id: string, paymentId: string, orde
   // 3. PERMANENT ADDRESS Section
   drawSectionHeader('PERMANENT ADDRESS', 298);
   drawField('Street / Locality', data.address || 'N/A', 40, 275);
-  drawField('City / State / PIN', `Jaipur, Rajasthan - ${data.address ? (data.address.match(/\b\d{6}\b/)?.[0] || '302017') : '302017'}`, 40, 242);
+  const pinCode = data.pincode || (data.address ? (data.address.match(/\b\d{6}\b/)?.[0] || '302017') : '302017');
+  drawField('City / State / PIN', `Jaipur, Rajasthan - ${pinCode}`, 40, 242);
 
   // 4. PAYMENT SUMMARY Section
   drawSectionHeader('PAYMENT SUMMARY', 201);
-  drawField('Amount Paid', `Rs. ${data.coupon?.toUpperCase() === 'TESTTEST' ? '1.00' : '1,500.00'}`, 40, 178);
+  let amountStr = '1,500.00';
+  if (data.paymentAmount !== undefined) {
+    amountStr = Number(data.paymentAmount).toFixed(2);
+  } else if (data.coupon?.toUpperCase() === 'TESTTEST') {
+    amountStr = '1.00';
+  }
+  drawField('Amount Paid', `Rs. ${amountStr}`, 40, 178);
   drawField('Mode of Payment', 'Online Transfer / UPI', 220, 178);
   
   page.drawText('TRANSACTION STATUS', { x: 410, y: 178, size: 7.5, color: greyColor });
@@ -229,6 +235,7 @@ export async function generatePDF(data: any, id: string, paymentId: string, orde
 
   return await pdfDoc.save();
 }
+
 
 // ============================================================================
 // SMTP EMAIL NOTIFICATION helper (Nodemailer STARTTLS Client)

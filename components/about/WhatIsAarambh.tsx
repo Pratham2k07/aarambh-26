@@ -62,7 +62,7 @@ export default function WhatIsAarambh() {
                 ILLUSTRATION #4
               </div>
               <img 
-                src="/aarambh-poster.jpg" 
+                src="/aarambh-2025-poster.jpg" 
                 alt="Aarambh Poster" 
                 className="w-full object-cover rounded-lg border-2 border-brand-ink brightness-[0.9] contrast-[1.1]" 
               />

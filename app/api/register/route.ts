@@ -4,6 +4,8 @@ import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Cashfree, CFEnvironment } from 'cashfree-pg';
 import { finalizeRegistration } from '@/lib/registrationHelper';
 
+import { isRateLimited, sanitizeObject } from '@/lib/security';
+
 // Initialize Cashfree
 const cashfree = new Cashfree(
   process.env.NEXT_PUBLIC_CASHFREE_ENV === 'PRODUCTION' 
@@ -14,68 +16,19 @@ const cashfree = new Cashfree(
 );
 cashfree.XApiVersion = '2023-08-01';
 
-// Input Sanitation Helpers
-function sanitizeInput(val: any): any {
-  if (typeof val === 'string') {
-    return val
-      .trim()
-      .replace(/<[^>]*>?/gm, '') // Remove HTML tags
-      .replace(/[^\w\s@.+-]/gi, (char) => {
-        // Basic escaping for special characters to prevent injection
-        const map: { [key: string]: string } = {
-          '&': '&amp;',
-          '<': '&lt;',
-          '>': '&gt;',
-          '"': '&quot;',
-          "'": '&#039;'
-        };
-        return map[char] || char;
-      });
-  }
-  return val;
-}
-
-function sanitizeObject(obj: any): any {
-  if (!obj || typeof obj !== 'object') return obj;
-  const sanitized: any = {};
-  for (const key in obj) {
-    if (Object.prototype.hasOwnProperty.call(obj, key)) {
-      const val = obj[key];
-      if (val && typeof val === 'object' && !Array.isArray(val)) {
-        sanitized[key] = sanitizeObject(val);
-      } else {
-        sanitized[key] = sanitizeInput(val);
-      }
-    }
-  }
-  return sanitized;
-}
-
-// Simple in-memory rate limiting
-const rateLimitMap = new Map();
-
 export async function POST(req: Request) {
   try {
     const ip = req.headers.get('x-forwarded-for') || '127.0.0.1';
-    const now = Date.now();
-    const limit = 5; // max 5 requests
-    const window = 60 * 1000; // per 1 minute
-
-    if (!rateLimitMap.has(ip)) {
-      rateLimitMap.set(ip, { count: 1, firstRequest: now });
-    } else {
-      const rateData = rateLimitMap.get(ip);
-      if (now - rateData.firstRequest > window) {
-        rateLimitMap.set(ip, { count: 1, firstRequest: now });
-      } else if (rateData.count >= limit) {
-        return NextResponse.json({ error: 'Too many attempts. Please try again in a minute.' }, { status: 429 });
-      } else {
-        rateData.count++;
-      }
+    
+    // Use unified security rate limiting: max 5 requests per minute
+    if (isRateLimited(ip, 5, 60 * 1000)) {
+      return NextResponse.json({ error: 'Too many attempts. Please try again in a minute.' }, { status: 429 });
     }
 
     const body = await req.json();
     const { action, honeypot, ...rawData } = body;
+    
+    // Use unified security sanitization to prevent XSS script injection
     const data = sanitizeObject(rawData);
 
     if (honeypot) {
