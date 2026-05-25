@@ -38,17 +38,6 @@ import {
 // CONSTANTS & CONFIGURATION
 // ============================================================================
 
-const TEAMS = [
-  'Registration Team',
-  'Technical Team',
-  'Discipline Team',
-  'Hospitality Team',
-  'Decoration Team',
-  'Anchoring Team',
-  'Photography Team',
-  'Social Media Team'
-];
-
 const VENUES = [
   'Main Gate',
   'Auditorium',
@@ -66,6 +55,15 @@ export default function DutyManagement() {
   const [volunteers, setVolunteers] = useState<any[]>([]);
   const [dutyAssignments, setDutyAssignments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Dynamically compute unique teams from fetched volunteers
+  const dynamicTeams = useMemo(() => {
+    const teamsSet = new Set<string>();
+    volunteers.forEach((v) => {
+      if (v.team) teamsSet.add(v.team);
+    });
+    return Array.from(teamsSet).sort();
+  }, [volunteers]);
 
   // Form State
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
@@ -469,7 +467,7 @@ export default function DutyManagement() {
                   className="w-full bg-brand-cloud/45 border-2 border-brand-ink rounded-md py-3 pl-11 pr-4 text-sm text-brand-ink font-bold focus:outline-none focus:border-brand-pink focus:bg-white shadow-[2px_2px_0px_0px_#030404] transition-colors cursor-pointer"
                 >
                   <option value="">Choose Team...</option>
-                  {TEAMS.map((teamName) => (
+                  {dynamicTeams.map((teamName) => (
                     <option key={teamName} value={teamName}>{teamName}</option>
                   ))}
                 </select>
@@ -692,7 +690,7 @@ export default function DutyManagement() {
             className="bg-white border-2 border-brand-ink rounded-md py-3 px-4 text-xs text-brand-ink font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_#030404] focus:outline-none cursor-pointer hover:bg-brand-cloud transition-colors"
           >
             <option value="all">All Teams</option>
-            {TEAMS.map((teamName) => (
+            {dynamicTeams.map((teamName) => (
               <option key={teamName} value={teamName}>{teamName}</option>
             ))}
           </select>
