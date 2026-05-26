@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react'
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion'
+import { useRouter } from 'next/navigation'
 import ThemeBackground from '@/components/layout/ThemeBackground'
 
 // ── Photos from public/photos/web ──
@@ -366,8 +367,9 @@ const BASE_Z_STEP = 90
 const BASE_Z_FAR = -5760
 
 export default function GalleryLanding() {
+  const router = useRouter()
   const [mounted, setMounted] = useState(false)
-  const [isEntered, setIsEntered] = useState(false)
+  const [isEntered, setIsEntered] = useState(true)
   const [showScrollHint, setShowScrollHint] = useState(true)
   const [lightboxId, setLightboxId] = useState<number | null>(null)
 
@@ -404,20 +406,13 @@ export default function GalleryLanding() {
     y.set(0)
   }
 
-  const handleEnterMagic = () => {
-    setIsEntered(true)
-    setShowScrollHint(true)
-    zOffsetRef.current = 0
-    targetZOffsetRef.current = 0
-  }
-
   const handleExitMagic = () => {
-    setIsEntered(false)
+    router.push('/')
   }
 
   // ── Tunnel Setup and Animation Loop ──
   useEffect(() => {
-    if (!isEntered || !mounted || !tunnelRef.current) return
+    if (!mounted || !tunnelRef.current) return
 
     const scene = tunnelRef.current
     scene.innerHTML = ''
@@ -558,7 +553,7 @@ export default function GalleryLanding() {
 
   // Scroll/Touch inputs
   useEffect(() => {
-    if (!isEntered) return
+    if (!mounted) return
 
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault()
@@ -586,7 +581,7 @@ export default function GalleryLanding() {
       window.removeEventListener('touchstart', handleTouchStart)
       window.removeEventListener('touchmove', handleTouchMove)
     }
-  }, [isEntered])
+  }, [mounted])
 
   // Keypress listener
   useEffect(() => {
@@ -594,14 +589,14 @@ export default function GalleryLanding() {
       if (e.key === 'Escape') {
         if (lightboxId !== null) {
           setLightboxId(null)
-        } else if (isEntered) {
-          setIsEntered(false)
+        } else {
+          router.push('/')
         }
       }
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [lightboxId, isEntered])
+  }, [lightboxId, router])
 
   const currentIdx = lightboxId !== null ? PHOTOS.findIndex(p => p.id === lightboxId) : -1
   const currentPhoto = currentIdx >= 0 ? PHOTOS[currentIdx] : null
@@ -609,16 +604,12 @@ export default function GalleryLanding() {
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: `
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800;900&family=Tiro+Devanagari+Hindi&display=swap');
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
 
-        body {
-          background: #F5F1E5;
-          overflow: hidden;
-          font-family: 'Syne', sans-serif;
-          color: #030404;
-        }
+        .gl-root { box-sizing: border-box; }
+        .gl-root * { box-sizing: border-box; }
+
+
 
         .gl-root {
           width: 100vw;
@@ -739,7 +730,7 @@ export default function GalleryLanding() {
           display: flex;
           align-items: center;
           justify-content: center;
-          font-family: 'Syne', sans-serif;
+          font-family: var(--font-display);
           font-weight: 900;
           font-size: 10px;
           color: #030404;
@@ -759,7 +750,7 @@ export default function GalleryLanding() {
         }
 
         .gl-eyebrow {
-          font-family: 'Syne', sans-serif;
+          font-family: var(--font-display);
           font-size: 0.75rem;
           font-weight: 800;
           letter-spacing: 0.25em;
@@ -769,7 +760,7 @@ export default function GalleryLanding() {
         }
 
         .gl-heading {
-          font-family: 'Syne', sans-serif;
+          font-family: var(--font-display);
           font-size: clamp(2rem, 7vw, 3rem);
           font-weight: 900;
           color: #030404;
@@ -798,7 +789,7 @@ export default function GalleryLanding() {
         }
 
         .gl-sub {
-          font-family: 'Syne', sans-serif;
+          font-family: var(--font-display);
           font-size: 0.8rem;
           font-weight: 600;
           color: #030404;
@@ -812,9 +803,9 @@ export default function GalleryLanding() {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          font-family: 'Syne', sans-serif;
+          font-family: var(--font-display);
           font-size: 0.85rem;
-          font-weight: 800;
+          font-weight: 900;
           letter-spacing: 0.15em;
           text-transform: uppercase;
           color: #F5F1E5;
@@ -840,7 +831,7 @@ export default function GalleryLanding() {
 
         .gl-corner-tag {
           position: absolute;
-          font-family: 'Syne', sans-serif;
+          font-family: var(--font-display);
           font-size: 10px;
           font-weight: 800;
           letter-spacing: 0.2em;
@@ -1004,278 +995,118 @@ export default function GalleryLanding() {
 
       <div className="gl-root">
         {/* Render 3D Tunnel directly when entered */}
-        {isEntered ? (
-          <motion.div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              width: '100%',
-              height: '100%',
-              background: '#F5F1E5',
-              overflow: 'hidden',
-              zIndex: 30,
-            }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.8, ease: 'easeOut' }}
-          >
-            <div className="tunnel-right-scene">
-              <ThemeBackground />
-
-              {/* Scene container */}
-              <div ref={tunnelRef} style={{
-                position: 'absolute',
-                inset: 0,
-                transformStyle: 'preserve-3d',
-                zIndex: 10,
-              }} />
-
-              {/* Exit the Magic */}
-              <button 
-                onClick={handleExitMagic}
-                className="tunnel-exit-btn"
-              >
-                <span style={{ fontFamily: "'Syne', sans-serif", fontSize: '11px', color: '#030404', letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 800 }}>
-                  Exit the magic
-                </span>
-              </button>
-
-              {/* Scroll Info */}
-              <div className="tunnel-controls-pill">
-                <span style={{ fontFamily: "'Syne', sans-serif", fontSize: '10px', color: '#030404', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 800 }}>
-                  Scroll to explore
-                </span>
-              </div>
-
-              {/* Scroll to see the magic badge */}
-              <AnimatePresence>
-                {showScrollHint && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.8, y: 30 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.8, y: -30 }}
-                    style={{
-                      position: 'absolute',
-                      top: '46%',
-                      left: '50%',
-                      transform: 'translate(-50%, -50%)',
-                      zIndex: 100,
-                      background: '#F5F1E5',
-                      border: '3.5px solid #030404',
-                      borderRadius: '20px',
-                      padding: '24px 36px',
-                      boxShadow: '12px 12px 0px 0px #030404',
-                      pointerEvents: 'none',
-                      textAlign: 'center',
-                      transformStyle: 'preserve-3d',
-                      perspective: '1000px'
-                    }}
-                  >
-                    <div style={{ 
-                      fontFamily: "'Syne', sans-serif",
-                      fontSize: '11px', 
-                      color: '#FF188C', 
-                      fontWeight: 800, 
-                      letterSpacing: '0.25em', 
-                      textTransform: 'uppercase', 
-                      marginBottom: '8px',
-                      transform: 'translateZ(15px)'
-                    }}>
-                      Aarambh Gallery
-                    </div>
-                    <div style={{ 
-                      fontFamily: "'Syne', sans-serif", 
-                      fontSize: '22px', 
-                      color: '#030404', 
-                      fontWeight: 900, 
-                      textTransform: 'uppercase', 
-                      transform: 'translateZ(30px)'
-                    }}>
-                      Scroll to see the magic
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              {/* Vignettes & Fades */}
-              <div style={{
-                position: 'absolute',
-                inset: 0,
-                background: 'radial-gradient(ellipse at center, transparent 30%, rgba(245, 241, 229, 0.70) 70%, rgba(245, 241, 229, 1) 100%)',
-                pointerEvents: 'none',
-                zIndex: 5,
-              }} />
-
-              <div style={{
-                position: 'absolute',
-                top: 0, left: 0, right: 0, height: '120px',
-                background: 'linear-gradient(to bottom, rgba(245, 241, 229, 1), transparent)',
-                pointerEvents: 'none', zIndex: 5,
-              }} />
-
-              <div style={{
-                position: 'absolute',
-                bottom: 0, left: 0, right: 0, height: '120px',
-                background: 'linear-gradient(to top, rgba(245, 241, 229, 1), transparent)',
-                pointerEvents: 'none', zIndex: 5,
-              }} />
-            </div>
-          </motion.div>
-        ) : (
-          /* Normal Landing Overlay Mode with 4 sliding banners */
-          <>
+        <motion.div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            background: '#F5F1E5',
+            overflow: 'hidden',
+            zIndex: 30,
+          }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.8, ease: 'easeOut' }}
+        >
+          <div className="tunnel-right-scene">
             <ThemeBackground />
 
-            {/* Column 1: Left Outer (Slides Up) */}
-            <div className="gl-slider-column left" style={{ left: '1.5%' }}>
-              <div className="gl-slider-track-up">
-                {[...col1Images, ...col1Images].map((src, i) => (
-                  <div key={`col1-${i}`} className="gl-slider-img-container">
-                    <img src={src} className="gl-slider-image" alt="Aarambh" />
-                  </div>
-                ))}
-              </div>
-            </div>
+            {/* Scene container */}
+            <div ref={tunnelRef} style={{
+              position: 'absolute',
+              inset: 0,
+              transformStyle: 'preserve-3d',
+              zIndex: 10,
+            }} />
 
-            {/* Column 2: Left Inner (Slides Down) */}
-            <div className="gl-slider-column left inner" style={{ left: '12.5%' }}>
-              <div className="gl-slider-track-down">
-                {[...col2Images, ...col2Images].map((src, i) => (
-                  <div key={`col2-${i}`} className="gl-slider-img-container">
-                    <img src={src} className="gl-slider-image" alt="Aarambh" />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Column 3: Right Inner (Slides Up) */}
-            <div className="gl-slider-column right inner" style={{ right: '12.5%' }}>
-              <div className="gl-slider-track-up">
-                {[...col3Images, ...col3Images].map((src, i) => (
-                  <div key={`col3-${i}`} className="gl-slider-img-container">
-                    <img src={src} className="gl-slider-image" alt="Aarambh" />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Column 4: Right Outer (Slides Down) */}
-            <div className="gl-slider-column right" style={{ right: '1.5%' }}>
-              <div className="gl-slider-track-down">
-                {[...col4Images, ...col4Images].map((src, i) => (
-                  <div key={`col4-${i}`} className="gl-slider-img-container">
-                    <img src={src} className="gl-slider-image" alt="Aarambh" />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Corner decorations */}
-            <span className="gl-corner-tag" style={{ top: 32, left: 32 }}>JKLU · AARAMBH '26</span>
-            <span className="gl-corner-tag" style={{ bottom: 32, right: 32 }}>GALLERY · REGISTRATION THEME</span>
-
-            {/* Starburst top-right */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0, rotate: 20 }}
-              animate={{ opacity: 1, scale: 1, rotate: 0 }}
-              transition={{ delay: 0.3, duration: 0.6, ease: [0.34,1.56,0.64,1] }}
-              style={{ position: 'absolute', top: '20%', right: '23%', zIndex: 15 }}
+            {/* Exit the Magic */}
+            <button 
+              onClick={handleExitMagic}
+              className="tunnel-exit-btn"
             >
-              <div style={{ position: 'relative', width: 80, height: 80 }}>
-                <div className="gl-starburst" />
-                <div className="gl-starburst-text">NEW<br/>PICS!</div>
-              </div>
-            </motion.div>
+              <span style={{ fontFamily: 'var(--font-display)', fontSize: '11px', color: '#030404', letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 800 }}>
+                Exit the magic
+              </span>
+            </button>
 
-            {/* Main Content Container */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 10, padding: '0 20px', textAlign: 'center', marginTop: '60px' }}>
-              
-              {/* Title Section */}
-              {mounted && (
+
+
+            {/* Scroll to see the magic badge */}
+            <AnimatePresence>
+              {showScrollHint && (
                 <motion.div
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                  initial={{ opacity: 0, scale: 0.8, y: 30 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.8, y: -30 }}
                   style={{
-                    maxWidth: '650px',
-                    marginBottom: '32px'
+                    position: 'absolute',
+                    top: '46%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    zIndex: 100,
+                    background: '#F5F1E5',
+                    border: '3.5px solid #030404',
+                    borderRadius: '20px',
+                    padding: '24px 36px',
+                    boxShadow: '12px 12px 0px 0px #030404',
+                    pointerEvents: 'none',
+                    textAlign: 'center',
+                    transformStyle: 'preserve-3d',
+                    perspective: '1000px'
                   }}
                 >
-                  <h2 style={{
+                  <div style={{ 
                     fontFamily: "'Syne', sans-serif",
-                    fontSize: 'clamp(2.0rem, 5vw, 3rem)',
-                    fontWeight: 800,
-                    color: '#FF9A00',
-                    marginBottom: '16px',
-                    textShadow: '2px 2px 0px #030404',
-                    letterSpacing: '-0.02em'
+                    fontSize: '11px', 
+                    color: '#FF188C', 
+                    fontWeight: 800, 
+                    letterSpacing: '0.25em', 
+                    textTransform: 'uppercase', 
+                    marginBottom: '8px',
+                    transform: 'translateZ(15px)'
                   }}>
-                    Memories of 2025
-                  </h2>
-                  <p style={{
-                    fontFamily: "'Syne', sans-serif",
-                    fontSize: 'clamp(0.9rem, 2vw, 1.1rem)',
-                    fontWeight: 600,
-                    color: '#030404',
-                    lineHeight: 1.6
+                    Aarambh Gallery
+                  </div>
+                  <div style={{ 
+                    fontFamily: "'Syne', sans-serif", 
+                    fontSize: '22px', 
+                    color: '#030404', 
+                    fontWeight: 900, 
+                    textTransform: 'uppercase', 
+                    transform: 'translateZ(30px)'
                   }}>
-                    Experience the best moments of Aarambh 2025 with our curated memories. From engaging workshops to inspiring guest lectures, relive the magic that made this event unforgettable!
-                  </p>
-                </motion.div>
-              )}
-
-              {/* Main Neo-Brutalism Card with 3D Parallax Tilt */}
-              {mounted && (
-                <motion.div
-                  className="gl-card"
-                  onMouseMove={handleMouseMove}
-                  onMouseLeave={handleMouseLeave}
-                  style={{
-                    rotateX,
-                    rotateY,
-                  }}
-                  initial={{ opacity: 0, y: 40 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-                >
-                  <div className="gl-card-topbar" />
-
-                  {/* 3D Float Depth Container */}
-                  <div style={{ transform: 'translateZ(30px)', transformStyle: 'preserve-3d' }}>
-                    {/* Devanagari */}
-                    <div className="gl-devanagari" style={{ transform: 'translateZ(15px)' }}>आरम्भ '२६</div>
-
-                    {/* Eyebrow */}
-                    <div className="gl-eyebrow" style={{ transform: 'translateZ(20px)' }}>Aarambh '26 Gallery</div>
-
-                    {/* Main heading */}
-                    <h1 className="gl-heading" style={{ transform: 'translateZ(45px)' }}>
-                      ENTER THE <br />
-                      <span className="gl-heading-highlight">GALLERY</span>
-                    </h1>
-
-                    {/* Divider */}
-                    <div className="gl-divider" style={{ transform: 'translateZ(25px)' }} />
-
-                    {/* Subtext */}
-                    <p className="gl-sub" style={{ transform: 'translateZ(30px)' }}>
-                      Experience the energy, boldness, and limitless possibilities. 
-                      Scroll to explore every captured moment of Aarambh.
-                    </p>
-
-                    {/* CTA - Triggers local transition */}
-                    <div style={{ transform: 'translateZ(50px)', display: 'inline-block' }}>
-                      <button onClick={handleEnterMagic} className="gl-cta">
-                        Begin Experience →
-                      </button>
-                    </div>
+                    Scroll to see the magic
                   </div>
                 </motion.div>
               )}
-            </div>
-          </>
-        )}
+            </AnimatePresence>
+
+            {/* Vignettes & Fades */}
+            <div style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'radial-gradient(ellipse at center, transparent 30%, rgba(245, 241, 229, 0.70) 70%, rgba(245, 241, 229, 1) 100%)',
+              pointerEvents: 'none',
+              zIndex: 5,
+            }} />
+
+            <div style={{
+              position: 'absolute',
+              top: 0, left: 0, right: 0, height: '120px',
+              background: 'linear-gradient(to bottom, rgba(245, 241, 229, 1), transparent)',
+              pointerEvents: 'none', zIndex: 5,
+            }} />
+
+            <div style={{
+              position: 'absolute',
+              bottom: 0, left: 0, right: 0, height: '120px',
+              background: 'linear-gradient(to top, rgba(245, 241, 229, 1), transparent)',
+              pointerEvents: 'none', zIndex: 5,
+            }} />
+          </div>
+        </motion.div>
       </div>
 
       {/* Lightbox Modal */}

@@ -669,7 +669,7 @@ export default function GalleryPage() {
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: `
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Tiro+Devanagari+Hindi&display=swap');
+
 
 /* PAGE BASE */
 .gp-root {
@@ -1307,7 +1307,7 @@ export default function GalleryPage() {
   padding: 6px 12px;
   border-radius: 999px;
   transition: all 0.2s ease;
-  font-family: 'Syne', sans-serif;
+  font-family: var(--font-display);
 }
 
 .speed-btn:hover {
@@ -1337,7 +1337,7 @@ export default function GalleryPage() {
   padding: 6px 14px;
   border-radius: 999px;
   transition: all 0.2s ease;
-  font-family: 'Syne', sans-serif;
+  font-family: var(--font-display);
 }
 
 .controls-exit-btn:hover {
@@ -1456,14 +1456,14 @@ export default function GalleryPage() {
                 e.currentTarget.style.boxShadow = '0 4px 12px rgba(255,154,0,0.1)'
               }}
             >
-              <span style={{ fontFamily: "'Syne', sans-serif", fontSize: '10px', color: '#FF9A00', letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 700 }}>
+              <span style={{ fontFamily: "var(--font-display)", fontSize: '10px', color: '#FF9A00', letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 700 }}>
                 Exit the magic
               </span>
             </button>
 
             {/* Right Side: Floating Control Pill (Scroll indicator only now) */}
             <div className="tunnel-controls-pill" style={{ background: '#030404', border: '1px solid rgba(255,154,0,0.3)', zIndex: 20 }}>
-              <span style={{ fontFamily: "'Syne', sans-serif", fontSize: '9px', color: '#F5F1E5', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600 }}>
+              <span style={{ fontFamily: "var(--font-display)", fontSize: '9px', color: '#F5F1E5', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600 }}>
                 Scroll to explore
               </span>
             </div>
@@ -1508,7 +1508,7 @@ export default function GalleryPage() {
               right: '24px',
               zIndex: 5,
               pointerEvents: 'none',
-              fontFamily: "'Syne', sans-serif",
+              fontFamily: "var(--font-display)",
               fontSize: '10px',
               color: 'rgba(3, 4, 4, 0.5)',
               letterSpacing: '0.1em',

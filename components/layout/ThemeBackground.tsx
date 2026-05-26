@@ -38,7 +38,7 @@ export default function ThemeBackground() {
             lineHeight: 0.8
           }}>आरम्भ</span>
           <span style={{ 
-            fontFamily: "'Syne', sans-serif", 
+            fontFamily: "var(--font-display)", 
             fontSize: 'clamp(8rem, 24vw, 22rem)', 
             fontWeight: 900, 
             color: '#030404', 

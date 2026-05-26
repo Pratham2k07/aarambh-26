@@ -46,6 +46,7 @@ export default function Navbar() {
     { name: 'Speakers', href: '/speakers' },
     { name: 'Team', href: '/team' },
     { name: 'FAQ', href: '/faq' },
+    { name: 'Gallery', href: '/gallery' },
   ];
 
   return (
@@ -92,13 +93,19 @@ export default function Navbar() {
           </div>
 
           {/* Actions (CTA) */}
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-3">
             <Link
-              href="/gallery"
-              className="relative group overflow-hidden rounded-full py-2 px-6 font-display font-bold text-xs uppercase tracking-wider text-brand-ink bg-brand-orange transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_4px_12px_rgba(255,154,0,0.3)] hover:shadow-[0_4px_20px_rgba(255,154,0,0.5)]"
+              href="/register"
+              className={`relative group overflow-hidden rounded-full py-2 px-5 font-display font-bold text-xs uppercase tracking-wider transition-all duration-300 hover:scale-105 active:scale-95 ${
+                pathname?.startsWith('/register')
+                  ? 'text-brand-cloud bg-brand-blue shadow-[0_4px_12px_rgba(13,33,221,0.4)]'
+                  : 'text-brand-cloud bg-brand-pink shadow-[0_4px_12px_rgba(255,24,140,0.3)] hover:shadow-[0_4px_20px_rgba(255,24,140,0.5)]'
+              }`}
             >
-              <span className="relative z-10 transition-colors group-hover:text-brand-cloud">Gallery</span>
-              <div className="absolute inset-0 -translate-x-full group-hover:translate-x-0 bg-gradient-to-r from-brand-pink to-brand-orange transition-transform duration-300 ease-out -z-0" />
+              <span className="relative z-10 transition-colors">Register</span>
+              {!pathname?.startsWith('/register') && (
+                <div className="absolute inset-0 -translate-x-full group-hover:translate-x-0 bg-brand-blue transition-transform duration-300 ease-out -z-0" />
+              )}
             </Link>
           </div>
 
@@ -135,10 +142,14 @@ export default function Navbar() {
               ))}
 
               <Link
-                href="/gallery"
-                className="w-full text-center py-3 rounded-full font-bold text-xs uppercase tracking-widest text-brand-ink bg-brand-orange hover:bg-brand-pink hover:text-brand-cloud transition-colors shadow-lg mt-2"
+                href="/register"
+                className={`w-full text-center py-3 rounded-full font-bold text-xs uppercase tracking-widest transition-colors shadow-lg mt-2 ${
+                  pathname?.startsWith('/register')
+                    ? 'text-brand-cloud bg-brand-blue'
+                    : 'text-brand-cloud bg-brand-pink hover:bg-brand-blue'
+                }`}
               >
-                Gallery
+                Register
               </Link>
             </motion.div>
           )}
