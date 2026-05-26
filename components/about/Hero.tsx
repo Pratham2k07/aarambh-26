@@ -5,20 +5,50 @@ import { ArrowRight } from 'lucide-react';
 
 export default function Hero() {
   return (
-    <section className="relative w-full min-h-[90vh] flex items-center justify-center overflow-hidden bg-brand-ink py-20">
-      {/* Halftone grid background */}
-      <div className="absolute inset-0 bg-halftone-black opacity-15 pointer-events-none" />
+    <section className="relative w-full min-h-[90vh] flex items-center justify-center overflow-hidden bg-brand-cloud py-20">
+      {/* Aurora Mesh Fluid Background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        {/* Base light background */}
+        <div className="absolute inset-0 bg-brand-cloud" />
 
-      {/* Blue & Pink graphic layout glow background */}
-      <div className="absolute -top-20 -right-20 w-[600px] h-[600px] rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255, 24, 140, 0.15) 0%, transparent 70%)' }} />
-      <div className="absolute -bottom-20 -left-20 w-[500px] h-[500px] rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255, 154, 0, 0.12) 0%, transparent 70%)' }} />
+        {/* Deep sweeping base - Pink */}
+        <motion.div
+          className="absolute -top-[10%] -left-[10%] w-[70%] h-[80%] rounded-full opacity-[0.2]"
+          style={{ background: '#FF188C', filter: 'blur(140px)' }}
+          animate={{
+            x: [0, 50, 0],
+            y: [0, 30, 0],
+            scale: [1, 1.1, 1],
+          }}
+          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+        />
+        
+        {/* Secondary subtle ribbon - Blue */}
+        <motion.div
+          className="absolute top-[20%] right-[10%] w-[50%] h-[70%] rounded-full opacity-[0.15]"
+          style={{ background: '#0D21DD', filter: 'blur(150px)' }}
+          animate={{
+            x: [0, -40, 0],
+            y: [0, -20, 0],
+            scale: [1, 1.15, 1],
+          }}
+          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+        />
+        
+        {/* Architectural Grid Overlay */}
+        <div 
+          className="absolute inset-0 pointer-events-none opacity-[0.05]" 
+          style={{
+            backgroundImage: `linear-gradient(to right, #030404 1px, transparent 1px), linear-gradient(to bottom, #030404 1px, transparent 1px)`,
+            backgroundSize: '4rem 4rem'
+          }}
+        />
 
-      {/* Large outline watermark */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden">
-        <span className="text-[20vw] font-display font-black leading-none tracking-tighter uppercase whitespace-nowrap text-outline-cloud opacity-5">
-          STORY
-        </span>
+        {/* Halftone grid overlay */}
+        <div className="absolute inset-0 bg-halftone-black opacity-10 mix-blend-overlay" />
       </div>
+
+
 
       {/* Main content */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-12 sm:py-16 flex justify-center md:justify-end w-full">
