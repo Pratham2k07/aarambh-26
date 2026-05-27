@@ -456,6 +456,7 @@ export default function GalleryLanding() {
 
       card.addEventListener('click', () => {
         const activePhotoId = card.dataset.photoId ? parseInt(card.dataset.photoId) : photo.id
+        console.log("Clicked card photo ID:", activePhotoId, "Displayed Src:", img.getAttribute('src'))
         setLightboxId(activePhotoId)
       })
 
