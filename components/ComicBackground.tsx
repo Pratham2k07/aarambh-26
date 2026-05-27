@@ -292,8 +292,8 @@ export default function ComicBackground() {
             <line x1="42" y1="70" x2="27" y2="160" stroke="#030404" strokeWidth="6" />
             <line x1="72" y1="70" x2="87" y2="160" stroke="#030404" strokeWidth="6" />
             {/* Stand Legs */}
-            <line x1="40" y1="65" x2="25" y2="155" stroke="#fff8ef" stroke="#030404" strokeWidth="4.5" />
-            <line x1="70" y1="65" x2="85" y2="155" stroke="#fff8ef" stroke="#030404" strokeWidth="4.5" />
+            <line x1="40" y1="65" x2="25" y2="155" stroke="#030404" strokeWidth="4.5" />
+            <line x1="70" y1="65" x2="85" y2="155" stroke="#030404" strokeWidth="4.5" />
 
             {/* Billboard shadow */}
             <rect x="14" y="14" width="90" height="56" fill="#030404" rx="8" />
