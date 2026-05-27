@@ -458,8 +458,18 @@ export default function Home() {
   const [galleryMounted, setGalleryMounted] = useState(false);
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({ days: 0, hours: 0, mins: 0, secs: 0 });
   const [particles, setParticles] = useState<Particle[]>([]);
-  const [introStarted, setIntroStarted] = useState(true);
-  const [loadingComplete, setLoadingComplete] = useState(false);
+  const [introStarted, setIntroStarted] = useState(false);
+  const [loadingComplete, setLoadingComplete] = useState(true);
+
+  // Show loading screen animation only on first time visit
+  useEffect(() => {
+    const hasVisited = localStorage.getItem('aarambh_visited');
+    if (!hasVisited) {
+      setIntroStarted(true);
+      setLoadingComplete(false);
+      localStorage.setItem('aarambh_visited', 'true');
+    }
+  }, []);
 
   // Generate Mario Animation Arrays for loading screen
   const NUM_SLICES = 5;

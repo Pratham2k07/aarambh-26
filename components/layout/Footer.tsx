@@ -248,7 +248,12 @@ export default function Footer() {
               </Link>
             </li>
             <li>
-              <Link href="#" className="hover:text-brand-pink transition-colors">
+              <Link href="/rules" className="hover:text-brand-pink transition-colors">
+                Rules & Regulations
+              </Link>
+            </li>
+            <li>
+              <Link href="/contact" className="hover:text-brand-pink transition-colors">
                 Contact Us
               </Link>
             </li>

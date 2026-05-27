@@ -50,3 +50,11 @@ export const submitFeedback = async (feedbackData: Record<string, unknown>) => {
     submittedAt: serverTimestamp(),
   });
 };
+
+export const submitContactMessage = async (contactData: Record<string, unknown>) => {
+  return await addDoc(collection(requireDb(), 'contact_messages'), {
+    ...contactData,
+    submittedAt: serverTimestamp(),
+  });
+};
+
