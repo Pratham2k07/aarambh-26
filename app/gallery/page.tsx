@@ -989,6 +989,15 @@ export default function GalleryLanding() {
           box-shadow: 16px 16px 0px 0px #030404;
         }
 
+        @media (max-width: 768px) {
+          .gp-lb-img {
+            max-width: 96vw;
+            max-height: 88vh;
+            border-radius: 12px;
+            box-shadow: 8px 8px 0px 0px #030404;
+          }
+        }
+
         .gp-lb-close {
           position: fixed;
           top: 24px;

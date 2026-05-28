@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Compass } from 'lucide-react';
+import { MapPin, Compass, Download } from 'lucide-react';
 import { SCHEDULE_DATA, DaySchedule, ScheduleItem } from '@/constants/events';
 
 const dayColors = [
@@ -179,10 +179,18 @@ export default function SchedulePage() {
       <div className="py-28 px-4 sm:px-6 max-w-7xl mx-auto min-h-screen overflow-hidden relative z-10">
 
       {/* Retro comic header panel */}
-      <header className="text-center mb-12 relative z-10 flex flex-col items-center">
+      <header className="text-center mb-12 relative z-10 flex flex-col items-center gap-6">
         <h1 className="font-display text-4xl sm:text-6xl md:text-7xl font-black uppercase leading-none tracking-tighter text-brand-ink text-center drop-shadow-[4px_4px_0px_#FF188C]">
           AARAMBH SCHEDULE
         </h1>
+        <a
+          href="/schedule.pdf"
+          download
+          className="inline-flex items-center gap-2.5 border-comic bg-brand-ink text-brand-cloud px-5 py-2.5 font-display text-sm font-black uppercase tracking-wider shadow-comic hover:bg-brand-orange hover:text-brand-ink transition-colors active:scale-[0.98]"
+        >
+          <Download size={16} />
+          DOWNLOAD SCHEDULE
+        </a>
       </header>
 
       {/* Horizontal Scrollable Neo-Brutalist Tabs */}
@@ -295,17 +303,22 @@ export default function SchedulePage() {
 
       {/* CTA Footer Section */}
       <section className="mt-20 text-center relative z-10">
-        <div className="border-comic bg-brand-pink text-brand-cloud max-w-xl mx-auto p-6 rounded-xl shadow-comic -rotate-1">
-          <h3 className="font-display font-black text-lg uppercase mb-2">DOWNLOAD RULES & INSTRUCTIONS</h3>
-          <p className="text-xs uppercase tracking-wide opacity-90 mb-4 font-bold">
-            Make sure to download and review the official rule book before check-in.
-          </p>
+        <div className="border-comic bg-brand-ink text-brand-cloud max-w-2xl mx-auto p-6 rounded-xl shadow-comic -rotate-1 flex flex-col sm:flex-row gap-4 items-center justify-center">
+          <a
+            href="/schedule.pdf"
+            download
+            className="inline-flex items-center gap-2 border-2 border-brand-cloud bg-brand-orange text-brand-ink px-5 py-2.5 font-display text-xs font-black uppercase tracking-wider shadow-[3px_3px_0px_0px_#F5F1E5] hover:scale-[1.03] transition-transform active:scale-[0.98]"
+          >
+            <Download size={14} />
+            DOWNLOAD SCHEDULE
+          </a>
           <a
             href="https://drive.google.com/file/d/1ZYlhBmtHS6bgUEg6MdhIxg4ipDRmEkpj/view?usp=sharing"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 border-comic bg-brand-orange text-brand-ink px-4 py-2 font-display text-xs font-black uppercase tracking-wider shadow-comic-sm hover:scale-[1.03] transition-transform active:scale-[0.98]"
+            className="inline-flex items-center gap-2 border-2 border-brand-cloud bg-brand-cloud text-brand-ink px-5 py-2.5 font-display text-xs font-black uppercase tracking-wider shadow-[3px_3px_0px_0px_#F5F1E5] hover:scale-[1.03] transition-transform active:scale-[0.98]"
           >
+            <Download size={14} />
             DOWNLOAD RULES BOOK
           </a>
         </div>

@@ -163,8 +163,8 @@ export default function Footer() {
   return (
     <footer className="relative bg-white border-t-4 border-brand-ink py-16 px-6 overflow-hidden select-none">
       
-      {/* 3-Column Neobrutalist Grid */}
-      <div className="max-w-7xl mx-auto relative z-10 grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
+      {/* 4-Column Neobrutalist Grid */}
+      <div className="max-w-7xl mx-auto relative z-10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-12 mb-12">
         
         {/* COLUMN 1: CONTACT US */}
         <div className="space-y-4">
@@ -298,6 +298,19 @@ export default function Footer() {
             >
               <LinkedInIcon size={18} />
             </a>
+          </div>
+        </div>
+
+        {/* COLUMN 4: CAMPUS IMAGE */}
+        <div className="flex justify-start md:justify-end items-center">
+          <div className="relative border-4 border-brand-ink shadow-[6px_6px_0px_0px_#030404] rounded-xl overflow-hidden group w-full max-w-[280px] aspect-[4/3] bg-brand-cloud">
+            <Image
+              src="/footer_image.webp"
+              alt="JKLU Campus View"
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
+              sizes="(max-width: 768px) 100vw, 280px"
+            />
           </div>
         </div>
 

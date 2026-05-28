@@ -138,7 +138,7 @@ const LEADERS: TeamMember[] = [
       "Designed secure database rules & scan endpoint authentications",
       "Configured API protection routes and high-speed registration pipelines"
     ],
-    image: "/team/devam.png",
+    image: "/Team Photos/Tech Team/devam.png",
     themeColor: "from-[#FF188C] via-pink-500 to-[#FF9A00]",
     glowColor: "rgba(139, 92, 246, 0.25)",
     accentColor: "#8b5cf6",
@@ -195,7 +195,7 @@ const VOLUNTEERS: TeamMember[] = [
       "Optimized responsive layout viewports for mobile screens",
       "Reviewed click target zones and alignment rules across the app"
     ],
-    image: "/team/ashutosh.png",
+    image: "/Team Photos/Tech Team/ashutosh.png",
     themeColor: "from-[#0D21DD] to-[#FF188C]",
     glowColor: "rgba(236, 72, 153, 0.25)",
     accentColor: "#ec4899",
@@ -218,7 +218,7 @@ const VOLUNTEERS: TeamMember[] = [
       "Designed tone-of-voice directives for core messaging",
       "Refined SEO content properties to maximize discovery rates"
     ],
-    image: "/team/rashi.png",
+    image: "/Team Photos/Tech Team/rashi.png",
     themeColor: "from-[#FF188C] to-[#FF9A00]",
     glowColor: "rgba(16, 185, 129, 0.25)",
     accentColor: "#10b981",
@@ -241,7 +241,7 @@ const VOLUNTEERS: TeamMember[] = [
       "Designed scalable NoSQL schemas for bulk operations",
       "Coordinated automated registration payload checks"
     ],
-    image: "/team/heramb.png",
+    image: "/Team Photos/Tech Team/heramb.png",
     themeColor: "from-[#FF9A00] to-[#0D21DD]",
     glowColor: "rgba(239, 68, 68, 0.25)",
     accentColor: "#ef4444",
@@ -290,7 +290,7 @@ const VOLUNTEERS: TeamMember[] = [
       "Engineered server-side JSON Web Token validations",
       "Audited scan records to prevent double-entry exploits"
     ],
-    image: "/team/arihant.png",
+    image: "/Team Photos/Tech Team/arihant.png",
     themeColor: "from-[#FF188C] to-[#0D21DD]",
     glowColor: "rgba(249, 115, 22, 0.25)",
     accentColor: "#f97316",
@@ -318,7 +318,7 @@ const VOLUNTEERS: TeamMember[] = [
       "Audited screen rendering parameters across multiple resolutions",
       "Identified and cataloged frontend bottlenecks for speedup"
     ],
-    image: "/team/mananat.png",
+    image: "/Team Photos/Tech Team/mananat.png",
     themeColor: "from-[#FF9A00] to-[#FF188C]",
     glowColor: "rgba(167, 139, 250, 0.25)",
     accentColor: "#a78bfa",
@@ -341,7 +341,7 @@ const VOLUNTEERS: TeamMember[] = [
       "Evaluated Next.js dynamic bundle division configurations",
       "Audited core web vitals and speed indexes across the portal"
     ],
-    image: "/team/pratham.png",
+    image: "/Team Photos/Tech Team/pratham.png",
     themeColor: "from-[#0D21DD] to-[#FF9A00]",
     glowColor: "rgba(52, 211, 153, 0.25)",
     accentColor: "#34d399",
@@ -364,7 +364,7 @@ const VOLUNTEERS: TeamMember[] = [
       "Maintained zero-downtime DNS routing patterns",
       "Optimized build script sizes on the Vercel edge runtime"
     ],
-    image: "/team/udit.png",
+    image: "/Team Photos/Tech Team/udit.png",
     themeColor: "from-[#eab308] to-[#FF9A00]",
     glowColor: "rgba(251, 191, 36, 0.25)",
     accentColor: "#fbbf24",

@@ -41,10 +41,11 @@ export default function Navbar() {
 
   const navLinks = [
     { name: 'Home', href: '/' },
-    { name: 'About', href: '/#about' },
+    { name: 'Rules', href: '/rules' },
     { name: 'Schedule', href: '/schedule' },
     { name: 'Speakers', href: '/speakers' },
-    { name: 'Rules', href: '/rules' },
+    { name: 'Gallery', href: '/gallery' },
+    { name: 'Team', href: '/team' },
     { name: 'Contact', href: '/contact' },
   ];
 
@@ -57,18 +58,40 @@ export default function Navbar() {
           }`}
       >
         <div className="flex justify-between items-center w-full">
-          {/* Logo */}
-          <Link href="/" className="flex items-center shrink-0">
-            <Image
-              src="/logo.svg"
-              alt="AARAMBH'26"
-              width={150}
-              height={32}
-              className="h-8 md:h-9 w-auto hover:scale-105 transition-transform"
-              priority
-              loading="eager"
-            />
-          </Link>
+          {/* Logo Container */}
+          <div className="flex items-center gap-3 shrink-0">
+            <a 
+              href="https://jklu.edu.in" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="flex items-center hover:scale-105 transition-transform"
+            >
+              <Image
+                src="/jklu_logo_light.svg"
+                alt="JKLU Logo"
+                width={40}
+                height={40}
+                className="h-9 md:h-10 w-auto object-contain"
+                priority
+                loading="eager"
+              />
+            </a>
+            <div className="w-[1.5px] h-6 bg-brand-cloud/25 self-center shrink-0" />
+            <Link 
+              href="/" 
+              className="flex items-center hover:scale-105 transition-transform"
+            >
+              <Image
+                src="/logo.svg"
+                alt="AARAMBH'26"
+                width={130}
+                height={30}
+                className="h-7 md:h-8 w-auto object-contain"
+                priority
+                loading="eager"
+              />
+            </Link>
+          </div>
 
           {/* Links for Desktop */}
           <div className="hidden md:flex items-center gap-6 bg-brand-ink/40 py-1.5 px-5 rounded-full border border-brand-cloud/5">
@@ -131,10 +154,7 @@ export default function Navbar() {
               transition={{ duration: 0.25, ease: "easeOut" }}
               className="md:hidden absolute top-[calc(100%+0.75rem)] left-0 w-full bg-brand-cloud border-4 border-brand-ink p-6 flex flex-col gap-3 shadow-[8px_8px_0px_0px_#030404] rounded-xl z-50 text-brand-ink"
             >
-              {/* Comic Banner tag inside the dropdown */}
-              <div className="border-comic-thin bg-brand-ink text-brand-cloud px-3 py-1 font-display text-[9px] font-black tracking-widest uppercase self-start rounded -rotate-2 -mt-1 mb-2">
-                AARAMBH MENU
-              </div>
+
 
               {navLinks.map((link) => (
                 <Link

@@ -25,12 +25,14 @@ export interface ChromaGridProps {
   damping?: number;
   fadeOut?: number;
   ease?: string;
+  flipTrigger?: 'hover' | 'click' | 'none';
 }
 
 type SetterFn = (v: number | string) => void;
 
-// Sharp, neobrutalist inline SVG icons
-const GitHubIcon = ({ size = 16 }: { size?: number }) => (
+
+
+const GitHubIcon = ({ size = 12 }: { size?: number }) => (
   <svg 
     width={size} 
     height={size} 
@@ -45,7 +47,7 @@ const GitHubIcon = ({ size = 16 }: { size?: number }) => (
   </svg>
 );
 
-const LinkedInIcon = ({ size = 16 }: { size?: number }) => (
+const LinkedInIcon = ({ size = 12 }: { size?: number }) => (
   <svg 
     width={size} 
     height={size} 
@@ -62,7 +64,7 @@ const LinkedInIcon = ({ size = 16 }: { size?: number }) => (
   </svg>
 );
 
-const InstagramIcon = ({ size = 16 }: { size?: number }) => (
+const InstagramIcon = ({ size = 12 }: { size?: number }) => (
   <svg 
     width={size} 
     height={size} 
@@ -79,7 +81,7 @@ const InstagramIcon = ({ size = 16 }: { size?: number }) => (
   </svg>
 );
 
-const EmailIcon = ({ size = 16 }: { size?: number }) => (
+const EmailIcon = ({ size = 12 }: { size?: number }) => (
   <svg 
     width={size} 
     height={size} 
@@ -178,14 +180,15 @@ const ChromaGrid: React.FC<ChromaGridProps> = ({
   radius = 300,
   damping = 0.45,
   fadeOut = 0.6,
-  ease = 'power3.out'
+  ease = 'power3.out',
+  flipTrigger = 'click'
 }) => {
-  const [flippedCards, setFlippedCards] = useState<Record<string, boolean>>({});
+  const [flippedCard, setFlippedCard] = useState<string | null>(null);
   const toggleFlip = (title: string) => {
-    setFlippedCards(prev => ({
-      ...prev,
-      [title]: !prev[title]
-    }));
+    // Enable click to flip strictly on mobile viewports (<640px) regardless of dynamic configuration
+    if (window.innerWidth < 640 || flipTrigger === 'click') {
+      setFlippedCard(prev => prev === title ? null : title);
+    }
   };
 
   const demo: ChromaItem[] = [
@@ -214,17 +217,15 @@ const ChromaGrid: React.FC<ChromaGridProps> = ({
 
   const data = items !== undefined ? items : demo;
 
-  const gridColsClass = data.length === 1 
-    ? 'grid-cols-1 w-full max-w-[320px]' 
-    : data.length === 2 
-      ? 'grid-cols-1 sm:grid-cols-2 w-full max-w-[680px]' 
-      : data.length === 3 
-        ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 w-full max-w-[1000px]'
-        : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 w-full';
+  const gridColsClass = data.length === 2 
+    ? 'grid-cols-2 w-full max-w-[680px]' 
+    : data.length === 3 
+      ? 'grid-cols-2 md:grid-cols-3 w-full max-w-[1000px]'
+      : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4 w-full';
 
   return (
     <div
-      className={`relative h-full grid justify-items-center gap-8 py-6 mx-auto ${gridColsClass} ${className}`}
+      className={`relative h-full grid justify-items-center gap-3 sm:gap-8 py-6 mx-auto ${gridColsClass} ${className}`}
     >
       {/* SVG displacement filter for torn paper edges */}
       <svg className="absolute w-0 h-0" width="0" height="0">
@@ -253,23 +254,26 @@ const ChromaGrid: React.FC<ChromaGridProps> = ({
             ? 'hover:-rotate-1' 
             : 'hover:rotate-[0.5deg]';
 
-        const isFlipped = !!flippedCards[c.title];
+        const isFlipped = flippedCard === c.title;
         
         return (
           <div
             key={i}
             onClick={() => toggleFlip(c.title)}
-            className={`relative w-full max-w-[310px] sm:max-w-[320px] h-[400px] [perspective:1000px] cursor-pointer select-none transition-all duration-300 hover:scale-[1.01] ${rotationClass} group`}
+            className={`relative w-full aspect-[3/5] max-w-[320px] [perspective:1000px] select-none transition-all duration-300 hover:scale-[1.01] ${rotationClass} group cursor-pointer sm:cursor-default`}
           >
             <div
               className={`relative w-full h-full duration-700 [transform-style:preserve-3d] transition-transform ${
                 isFlipped ? '[transform:rotateY(180deg)]' : ''
+              } ${
+                flipTrigger === 'hover' ? 'sm:group-hover:[transform:rotateY(180deg)]' : ''
               }`}
             >
               {/* FRONT SIDE */}
-              {/* FRONT SIDE */}
               <div
-                className="absolute inset-0 w-full h-full [backface-visibility:hidden] flex flex-col p-6 bg-transparent justify-between select-none transition-all duration-300"
+                className={`absolute inset-0 w-full h-full [backface-visibility:hidden] flex flex-col p-2.5 xs:p-4 sm:p-6 bg-transparent justify-between select-none transition-all duration-300 ${
+                  flipTrigger === 'hover' ? 'sm:group-hover:opacity-0 sm:group-hover:pointer-events-none' : ''
+                }`}
                 style={{
                   opacity: isFlipped ? 0 : 1,
                   pointerEvents: isFlipped ? 'none' : 'auto'
@@ -277,7 +281,7 @@ const ChromaGrid: React.FC<ChromaGridProps> = ({
               >
                 {/* 1. Solid drop shadow layer (Torn shape) */}
                 <div 
-                  className="absolute inset-2 -z-20 translate-x-2 translate-y-2 group-hover:translate-x-2.5 group-hover:translate-y-2.5 transition-transform duration-300"
+                  className="absolute inset-1.5 xs:inset-2 -z-20 translate-x-1 translate-y-1 xs:translate-x-2 xs:translate-y-2 group-hover:translate-x-1.5 group-hover:translate-y-1.5 transition-transform duration-300"
                   style={{
                     backgroundColor: c.borderColor || '#FF188C',
                     filter: 'url(#torn-card-filter)'
@@ -285,26 +289,26 @@ const ChromaGrid: React.FC<ChromaGridProps> = ({
                 />
                 {/* 2. White fibrous paper core layer */}
                 <div 
-                  className="absolute inset-1.5 bg-[#FEFEFC] -z-10"
+                  className="absolute inset-1 xs:inset-1.5 bg-[#FEFEFC] -z-10"
                   style={{
                     filter: 'url(#torn-card-filter)'
                   }}
                 />
                 {/* 3. Black top paper layer */}
                 <div 
-                  className="absolute inset-2 bg-[#030404] -z-10"
+                  className="absolute inset-1.5 xs:inset-2 bg-[#030404] -z-10"
                   style={{
                     filter: 'url(#torn-card-filter)'
                   }}
                 />
                 
                 {/* Subtle paper halftone texture on black paper */}
-                <div className="absolute inset-2 bg-halftone-cloud opacity-10 mix-blend-screen pointer-events-none -z-5" style={{ filter: 'url(#torn-card-filter)' }} />
+                <div className="absolute inset-1.5 xs:inset-2 bg-halftone-cloud opacity-10 mix-blend-screen pointer-events-none -z-5" style={{ filter: 'url(#torn-card-filter)' }} />
 
                 {/* Photo Frame */}
-                <div className="flex justify-center w-full mt-2 shrink-0 z-10">
+                <div className="flex justify-center w-full mt-1 xs:mt-2 shrink-0 z-10">
                   <div 
-                    className="relative w-36 h-[180px] shrink-0 rounded-lg overflow-hidden border-2 bg-[#0e0e0e] shadow-[4px_4px_0px_0px_rgba(255,255,255,0.08)]"
+                    className="relative w-[78%] aspect-[3/5] shrink-0 rounded-lg overflow-hidden border bg-[#0e0e0e] shadow-[4px_4px_0px_0px_rgba(255,255,255,0.08)]"
                     style={{ borderColor: c.borderColor || '#FF188C' }}
                   >
                     {c.image ? (
@@ -327,31 +331,77 @@ const ChromaGrid: React.FC<ChromaGridProps> = ({
                 </div>
 
                 {/* Identity Section */}
-                <div className="flex flex-col items-center text-center mt-4 space-y-2 flex-grow justify-start z-10">
+                <div className="flex flex-col items-center text-center mt-2 space-y-1 flex-grow justify-start z-10">
                   {/* Name */}
-                  <h2 className="text-lg md:text-xl font-display font-black uppercase text-white tracking-tight leading-tight line-clamp-2 px-1 mt-1">
+                  <h2 className="text-sm md:text-base font-display font-black uppercase text-white tracking-tight leading-tight line-clamp-2 px-1">
                     {c.title}
                   </h2>
 
                   {/* Designation/Role */}
                   <p 
-                    className="font-bold text-xs uppercase tracking-wider line-clamp-2 px-1"
+                    className="font-bold text-[9px] xs:text-[10px] uppercase tracking-wider line-clamp-2 px-1"
                     style={{ color: c.borderColor || '#FF188C' }}
                   >
                     {c.subtitle}
                   </p>
                 </div>
 
-                {/* Flip Hint */}
-                <div className="border-t border-white/10 pt-3 w-full text-center mt-auto shrink-0 flex items-center justify-center gap-1.5 text-[9px] font-mono font-bold text-white/40 uppercase tracking-wider z-10">
-                  <span className="inline-block w-1.5 h-1.5 rounded-full animate-ping" style={{ backgroundColor: c.borderColor || '#FF188C' }} />
-                  <span>Click to flip</span>
-                </div>
+                {/* Social Icons inside front side card when flipTrigger === 'none' */}
+                {flipTrigger === 'none' && (c.socials?.linkedin || c.socials?.email || c.socials?.github || c.socials?.instagram) && (() => {
+                  const frontLinks = [
+                    c.socials?.github ? { href: c.socials.github, icon: <GitHubIcon size={16} />, label: 'GitHub Profile', isMailto: false } : null,
+                    c.socials?.linkedin ? { href: c.socials.linkedin, icon: <LinkedInIcon size={16} />, label: 'LinkedIn Profile', isMailto: false } : null,
+                    c.socials?.email ? { href: c.socials.email.startsWith('mailto:') ? c.socials.email : `mailto:${c.socials.email}`, icon: <EmailIcon size={16} />, label: 'Send Email', isMailto: true } : null,
+                    c.socials?.instagram ? { href: c.socials.instagram, icon: <InstagramIcon size={16} />, label: 'Instagram Profile', isMailto: false } : null,
+                  ].filter(Boolean) as { href: string; icon: React.ReactNode; label: string; isMailto: boolean }[];
+                  const count = frontLinks.length;
+                  const iconBtn = (item: typeof frontLinks[0], key: number) => (
+                    <a
+                      key={key}
+                      href={item.href}
+                      target={item.isMailto ? undefined : '_blank'}
+                      rel={item.isMailto ? undefined : 'noopener noreferrer'}
+                      onClick={(e) => e.stopPropagation()}
+                      className="w-8 h-8 text-white/70 hover:bg-[var(--hover-color)] hover:text-[#030404] hover:shadow-[0px_0px_8px_var(--hover-color)] transition-all rounded flex justify-center items-center cursor-pointer"
+                      style={{ '--hover-color': c.borderColor || '#FF188C' } as React.CSSProperties}
+                      aria-label={item.label}
+                    >
+                      {item.icon}
+                    </a>
+                  );
+                  return (
+                    <div className="mt-2 pt-2 border-t border-white/10 w-full z-20 shrink-0 hidden sm:flex flex-col items-center gap-1.5">
+                      {count === 4 && (
+                        <>
+                          <div className="flex gap-1.5">{frontLinks.slice(0,2).map((l, k) => iconBtn(l, k))}</div>
+                          <div className="flex gap-1.5">{frontLinks.slice(2,4).map((l, k) => iconBtn(l, k+2))}</div>
+                        </>
+                      )}
+                      {count === 3 && (
+                        <>
+                          <div className="flex gap-1.5">{iconBtn(frontLinks[0], 0)}</div>
+                          <div className="flex gap-1.5">{frontLinks.slice(1,3).map((l, k) => iconBtn(l, k+1))}</div>
+                        </>
+                      )}
+                      {count === 2 && (
+                        <>
+                          <div className="flex gap-1.5">{iconBtn(frontLinks[0], 0)}</div>
+                          <div className="flex gap-1.5">{iconBtn(frontLinks[1], 1)}</div>
+                        </>
+                      )}
+                      {count === 1 && (
+                        <div className="flex gap-1.5">{iconBtn(frontLinks[0], 0)}</div>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* BACK SIDE */}
               <div
-                className="absolute inset-0 w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] flex flex-col p-5 bg-transparent justify-between select-none transition-all duration-300"
+                className={`absolute inset-0 w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] flex flex-col p-2.5 xs:p-4 sm:p-5 bg-transparent justify-between select-none transition-all duration-300 ${
+                  flipTrigger === 'hover' ? 'opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto' : ''
+                }`}
                 style={{
                   opacity: isFlipped ? 1 : 0,
                   pointerEvents: isFlipped ? 'auto' : 'none'
@@ -359,7 +409,7 @@ const ChromaGrid: React.FC<ChromaGridProps> = ({
               >
                 {/* 1. Solid drop shadow layer (Torn shape - flipped direction) */}
                 <div 
-                  className="absolute inset-2 -z-20 -translate-x-2 translate-y-2 group-hover:-translate-x-2.5 group-hover:translate-y-2.5 transition-transform duration-300"
+                  className="absolute inset-1.5 xs:inset-2 -z-20 -translate-x-1 translate-y-1 xs:-translate-x-2 xs:translate-y-2 group-hover:-translate-x-1.5 group-hover:translate-y-1.5 transition-transform duration-300"
                   style={{
                     backgroundColor: c.borderColor || '#FF188C',
                     filter: 'url(#torn-card-filter)'
@@ -367,106 +417,103 @@ const ChromaGrid: React.FC<ChromaGridProps> = ({
                 />
                 {/* 2. White fibrous paper core layer */}
                 <div 
-                  className="absolute inset-1.5 bg-[#FEFEFC] -z-10"
+                  className="absolute inset-1 xs:inset-1.5 bg-[#FEFEFC] -z-10"
                   style={{
                     filter: 'url(#torn-card-filter)'
                   }}
                 />
                 {/* 3. Black top paper layer */}
                 <div 
-                  className="absolute inset-2 bg-[#030404] -z-10"
+                  className="absolute inset-1.5 xs:inset-2 bg-[#030404] -z-10"
                   style={{
                     filter: 'url(#torn-card-filter)'
                   }}
                 />
                 
                 {/* Subtle paper halftone texture on black paper */}
-                <div className="absolute inset-2 bg-halftone-cloud opacity-10 mix-blend-screen pointer-events-none -z-5" style={{ filter: 'url(#torn-card-filter)' }} />
+                <div className="absolute inset-1.5 xs:inset-2 bg-halftone-cloud opacity-10 mix-blend-screen pointer-events-none -z-5" style={{ filter: 'url(#torn-card-filter)' }} />
 
-                {/* Top Info Banner (Compact) */}
-                <div className="flex flex-col text-left shrink-0 z-10">
-                  <h3 className="text-base font-display font-black uppercase text-white tracking-tight leading-tight line-clamp-1">
+                {/* Top Info Banner (Compact) - Hidden on Mobile */}
+                <div className="hidden sm:flex flex-col text-left shrink-0 z-10">
+                  <h3 className="text-xs xs:text-sm sm:text-base font-display font-black uppercase text-white tracking-tight leading-tight line-clamp-1">
                     {c.title}
                   </h3>
                   <p 
-                    className="font-bold text-[10px] uppercase tracking-wider truncate mt-0.5"
+                    className="font-bold text-[8px] xs:text-[10px] uppercase tracking-wider truncate mt-0.5"
                     style={{ color: c.borderColor || '#FF188C' }}
                   >
                     {c.subtitle}
                   </p>
                 </div>
 
-                {/* Thin Divider */}
-                <div className="border-t border-white/10 my-2.5 shrink-0 z-10" />
+                {/* Thin Divider - Hidden on Mobile */}
+                <div className="hidden sm:block border-t border-white/10 my-1 xs:my-2.5 shrink-0 z-10" />
 
-                {/* Description/Bio (tagline) */}
-                <div className="flex-1 min-h-0 flex flex-col justify-start z-10 relative">
-                  <p className="text-white/80 text-[11px] font-mono font-bold leading-relaxed line-clamp-6">
+                {/* Description/Bio (tagline) - Hidden on Mobile */}
+                <div className="hidden sm:flex flex-1 min-h-0 flex-col justify-start z-10 relative">
+                  <p className="text-white/80 text-[8px] xs:text-[11px] font-mono font-bold leading-relaxed line-clamp-4 xs:line-clamp-6">
                     {getTagline(c.location, c.title)}
                   </p>
                   
                   {/* Decorative Hindi watermark 'सफ़र' */}
                   <span 
-                    className="absolute right-1 bottom-1 text-3xl font-black font-display select-none pointer-events-none transform rotate-[-8deg] font-hindi opacity-10"
+                    className="absolute right-1 bottom-1 text-xl xs:text-3xl font-black font-display select-none pointer-events-none transform rotate-[-8deg] font-hindi opacity-10"
                     style={{ color: c.borderColor || '#FF188C' }}
                   >
                     सफ़र
                   </span>
                 </div>
 
-                {/* Social Actions Block */}
-                <div className="border-t border-white/10 pt-3 mt-3 flex justify-start gap-2.5 shrink-0 z-10">
-                  {c.socials?.github && (
+                {/* Social Actions Block - Back side, count-aware layout */}
+                {(() => {
+                  const backLinks = [
+                    c.socials?.github ? { href: c.socials.github, icon: <GitHubIcon size={16} />, label: 'GitHub Profile', isMailto: false } : null,
+                    c.socials?.linkedin ? { href: c.socials.linkedin, icon: <LinkedInIcon size={16} />, label: 'LinkedIn Profile', isMailto: false } : null,
+                    c.socials?.email ? { href: c.socials.email.startsWith('mailto:') ? c.socials.email : `mailto:${c.socials.email}`, icon: <EmailIcon size={16} />, label: 'Send Email', isMailto: true } : null,
+                    c.socials?.instagram ? { href: c.socials.instagram, icon: <InstagramIcon size={16} />, label: 'Instagram Profile', isMailto: false } : null,
+                  ].filter(Boolean) as { href: string; icon: React.ReactNode; label: string; isMailto: boolean }[];
+                  const count = backLinks.length;
+                  if (count === 0) return null;
+                  const iconBtn = (item: typeof backLinks[0], key: number) => (
                     <a
-                      href={c.socials.github}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      key={key}
+                      href={item.href}
+                      target={item.isMailto ? undefined : '_blank'}
+                      rel={item.isMailto ? undefined : 'noopener noreferrer'}
                       onClick={(e) => e.stopPropagation()}
-                      className="w-9 h-9 bg-[#0e0e0e] border-2 border-white/10 text-white/80 hover:text-[var(--hover-color)] hover:border-[var(--hover-color)] hover:shadow-[2px_2px_0px_0px_var(--hover-color)] active:translate-y-[2px] transition-all rounded-md flex justify-center items-center shadow-[2px_2px_0px_0px_rgba(255,255,255,0.05)] cursor-pointer"
-                      style={{ '--hover-color': c.borderColor || '#FF188C' } as React.CSSProperties}
-                      aria-label="GitHub Profile"
+                      className="w-8 h-8 xs:w-9 xs:h-9 border text-white hover:bg-white hover:text-black transition-all rounded flex justify-center items-center cursor-pointer animate-fadeIn"
+                      style={{ borderColor: c.borderColor || '#FF188C' }}
+                      aria-label={item.label}
                     >
-                      <GitHubIcon size={14} />
+                      {item.icon}
                     </a>
-                  )}
-                  {c.socials?.linkedin && (
-                    <a
-                      href={c.socials.linkedin}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="w-9 h-9 bg-[#0e0e0e] border-2 border-white/10 text-white/80 hover:text-[var(--hover-color)] hover:border-[var(--hover-color)] hover:shadow-[2px_2px_0px_0px_var(--hover-color)] active:translate-y-[2px] transition-all rounded-md flex justify-center items-center shadow-[2px_2px_0px_0px_rgba(255,255,255,0.05)] cursor-pointer"
-                      style={{ '--hover-color': c.borderColor || '#FF188C' } as React.CSSProperties}
-                      aria-label="LinkedIn Profile"
-                    >
-                      <LinkedInIcon size={14} />
-                    </a>
-                  )}
-                  {c.socials?.email && (
-                    <a
-                      href={c.socials.email.startsWith('mailto:') ? c.socials.email : `mailto:${c.socials.email}`}
-                      onClick={(e) => e.stopPropagation()}
-                      className="w-9 h-9 bg-[#0e0e0e] border-2 border-white/10 text-white/80 hover:text-[var(--hover-color)] hover:border-[var(--hover-color)] hover:shadow-[2px_2px_0px_0px_var(--hover-color)] active:translate-y-[2px] transition-all rounded-md flex justify-center items-center shadow-[2px_2px_0px_0px_rgba(255,255,255,0.05)] cursor-pointer"
-                      style={{ '--hover-color': c.borderColor || '#FF188C' } as React.CSSProperties}
-                      aria-label="Send Email"
-                    >
-                      <EmailIcon size={14} />
-                    </a>
-                  )}
-                  {c.socials?.instagram && (
-                    <a
-                      href={c.socials.instagram}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="w-9 h-9 bg-[#0e0e0e] border-2 border-white/10 text-white/80 hover:text-[var(--hover-color)] hover:border-[var(--hover-color)] hover:shadow-[2px_2px_0px_0px_var(--hover-color)] active:translate-y-[2px] transition-all rounded-md flex justify-center items-center shadow-[2px_2px_0px_0px_rgba(255,255,255,0.05)] cursor-pointer"
-                      style={{ '--hover-color': c.borderColor || '#FF188C' } as React.CSSProperties}
-                      aria-label="Instagram Profile"
-                    >
-                      <InstagramIcon size={14} />
-                    </a>
-                  )}
-                </div>
+                  );
+                  return (
+                    <div className="flex-1 sm:flex-initial flex flex-col items-center justify-center border-t border-white/10 pt-1.5 xs:pt-3 mt-1.5 xs:mt-3 gap-1.5 shrink-0 z-10">
+                      {count === 4 && (
+                        <>
+                          <div className="flex gap-1.5">{backLinks.slice(0,2).map((l, k) => iconBtn(l, k))}</div>
+                          <div className="flex gap-1.5">{backLinks.slice(2,4).map((l, k) => iconBtn(l, k+2))}</div>
+                        </>
+                      )}
+                      {count === 3 && (
+                        <>
+                          <div className="flex gap-1.5">{iconBtn(backLinks[0], 0)}</div>
+                          <div className="flex gap-1.5">{backLinks.slice(1,3).map((l, k) => iconBtn(l, k+1))}</div>
+                        </>
+                      )}
+                      {count === 2 && (
+                        <>
+                          <div className="flex gap-1.5">{iconBtn(backLinks[0], 0)}</div>
+                          <div className="flex gap-1.5">{iconBtn(backLinks[1], 1)}</div>
+                        </>
+                      )}
+                      {count === 1 && (
+                        <div className="flex gap-1.5">{iconBtn(backLinks[0], 0)}</div>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           </div>

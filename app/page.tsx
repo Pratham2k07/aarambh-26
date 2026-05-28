@@ -808,17 +808,8 @@ export default function Home() {
       <section 
         className="relative w-full min-h-screen flex flex-col justify-between overflow-hidden bg-brand-cloud text-brand-ink selection:bg-brand-pink selection:text-brand-cloud p-4 md:p-8"
       >
-        {/* Outer Inset Frame Border */}
-        <div className="absolute inset-4 pointer-events-none border border-brand-ink/15 z-40 hidden md:block" />
-
         {/* Noise overlay and grid ticks */}
         <div className="absolute inset-0 bg-halftone-black opacity-[0.03] pointer-events-none z-0" />
-
-        {/* Top Header Spacing / Metadata */}
-        <div className="w-[calc(100%-2rem)] md:w-[calc(100%-4rem)] mx-auto py-3 border-b border-brand-ink/10 bg-transparent text-brand-ink/70 overflow-hidden z-30 mt-4 md:mt-2 flex justify-between items-center text-[9px] font-mono tracking-[0.2em]">
-          <span>JK LAKSHMIPAT UNIVERSITY</span>
-          <span>AARAMBH &apos;26 PORTAL</span>
-        </div>
 
 
         {/* Full-bleed Translucent Fluid Alcohol Ink Background with mouse warp distortion */}
@@ -848,12 +839,12 @@ export default function Home() {
                 fill
                 priority
                 sizes="100vw"
-                className="object-cover opacity-65 scale-[1.08] filter brightness-[1.01] contrast-[0.99]"
+                className="object-cover opacity-100 sm:opacity-65 scale-[1.08] filter saturate-[1.8] brightness-[0.97] contrast-[1.05] sm:saturate-100 sm:brightness-[1.01] sm:contrast-[0.99]"
               />
             </motion.div>
           </div>
           {/* Subtle radial gradient overlay to ensure central text readability & keep margins textured */}
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(245,241,229,0.75)_0%,rgba(245,241,229,0.1)_100%)] pointer-events-none" />
+          <div className="absolute inset-0 hidden sm:block bg-[radial-gradient(circle_at_center,rgba(245,241,229,0.75)_0%,rgba(245,241,229,0.1)_100%)] pointer-events-none" />
         </div>
 
         {/* Floating abstract Y2K Sparkle Stars (Drifts dynamically with cursor) */}
@@ -1067,35 +1058,13 @@ export default function Home() {
         </motion.div>
       </div>
 
-      {/* Bottom Footer Spacing / Metadata */}
-      <div className="w-[calc(100%-2rem)] md:w-[calc(100%-4rem)] mx-auto py-3 border-t border-brand-ink/10 bg-transparent text-brand-ink/60 overflow-hidden z-20 mt-6 flex justify-between items-center text-[9px] font-mono tracking-[0.2em]">
-        <span>⚡ BOLD & BEYOND</span>
-        <span>JULY 14-17 // JKLU</span>
-      </div>
+
     </section>
 
       {/* Torn paper visual separation */}
       <TornPaperDivider color="fill-brand-ink" />
 
-      {/* Comic styled strip/marquee */}
-      <section className="w-full py-4 border-y-4 border-brand-ink bg-brand-cloud text-brand-ink overflow-hidden z-10">
-        <div className="w-full flex whitespace-nowrap overflow-hidden">
-          <motion.div
-            variants={marqueeVariants}
-            animate="animate"
-            className="flex gap-16 font-display font-black text-base sm:text-lg uppercase tracking-wider select-none"
-          >
-            {[...Array(4)].map((_, i) => (
-              <React.Fragment key={i}>
-                <span className="text-brand-pink">💥 AARAMBH &apos;26</span>
-                <span className="text-brand-blue">🎓 JK LAKSHMIPAT UNIVERSITY</span>
-                <span className="text-brand-orange">💥 AARAMBH &apos;26</span>
-                <span className="text-brand-ink">🎓 JK LAKSHMIPAT UNIVERSITY</span>
-              </React.Fragment>
-            ))}
-          </motion.div>
-        </div>
-      </section>
+
 
       {/* Torn paper visual separation */}
       <TornPaperDivider color="fill-brand-ink" flip={true} />

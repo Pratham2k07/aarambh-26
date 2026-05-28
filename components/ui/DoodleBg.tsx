@@ -174,7 +174,7 @@ const icons: (() => React.ReactElement)[] = [
   // 78 – Pi symbol
   () => <svg viewBox="0 0 35 30" {...P}><path d="M5,8h25"/><path d="M12,8v18c0,3-4,3-4,0"/><path d="M22,8v20"/></svg>,
   // 79 – Infinity
-  () => <svg viewBox="0 0 45 22" {...P}><path d="M22,11c-4-8-16-8-16,0s12,8 16,0 4-8 16-8 16,0-12,8-16,0z"/></svg>,
+  () => <svg viewBox="0 0 45 22" {...P}><path d="M 8 11 c -4 0 -7 3 -7 7 s 3 7 7 7 c 4 0 7 -3 8 -6.5 l 3.5 -5 c 1 -3.5 4 -6.5 8 -6.5 c 4 0 7 3 7 7 s -3 7 -7 7 c -4 0 -7 -3 -8 -6.5 l -3.5 -5 c -1 -3.5 -4 -6.5 -8 -6.5 z"/></svg>,
   // 80 – Sigma/sum
   () => <svg viewBox="0 0 28 35" {...P}><path d="M24,5H6l10,12L6,30h18"/></svg>,
   // 81 – Hashtag

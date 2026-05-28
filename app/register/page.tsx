@@ -391,7 +391,7 @@ function RegisterContent() {
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                      className="overflow-hidden space-y-6"
+                      className="overflow-hidden space-y-6 pb-3"
                     >
                       {/* Parent Details Row */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -474,7 +474,7 @@ function RegisterContent() {
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                      className="overflow-hidden space-y-6"
+                      className="overflow-hidden space-y-6 pb-3"
                     >
                       <div className="space-y-2">
                         <label className="text-xs font-bold text-brand-ink/75 block mb-1">Full Address *</label>

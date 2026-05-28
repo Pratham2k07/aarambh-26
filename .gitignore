@@ -97,7 +97,6 @@ walkthrough.md
 /public/teaser.mp4
 
 # Raw photos and processing files
-public/photos/*.JPG
 raw_gallery*.html
 compress.cjs
 scripts/*.cjs

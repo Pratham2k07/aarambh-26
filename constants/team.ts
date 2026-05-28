@@ -40,18 +40,28 @@ export const TEAM_DATA = {
       designation: "Executive - Student Affairs",
       photo: "/Team Photos/Admin and Student Affairs/Anushka Pathak.jpg",
       department: "Office of Student Affairs",
-      socials: {
-        email: "anushkapathak@jklu.edu.in"
-      }
+      socials: {}
     },
     {
       name: "Vaibhav Topiwala",
       designation: "Sports Officer - Student Affairs",
       photo: "/Team Photos/Admin and Student Affairs/Vaibhav Topiwala.png",
       department: "Office of Student Affairs",
-      socials: {
-        email: "vaibhavtopiwala@jklu.edu.in"
-      }
+      socials: {}
+    },
+    {
+      name: "Mr. Gajendra",
+      designation: "Sr. Sports Officer - Student Affairs",
+      photo: "/Team Photos/Admin and Student Affairs/Mr. Gajendra.jpeg",
+      department: "Office of Student Affairs",
+      socials: {}
+    },
+    {
+      name: "Rajesh Joshi",
+      designation: "Office Assistant - Student Affairs",
+      photo: "/Team Photos/Admin and Student Affairs/Rajesh Joshi.jpg",
+      department: "Office of Student Affairs",
+      socials: {}
     }
   ] as TeamMember[],
 
@@ -157,6 +167,13 @@ export const TEAM_DATA = {
         instagram: "https://www.instagram.com/who.is.devam/",
         github: "https://github.com/Devam759"
       }
+    },
+    {
+      name: "Yash Bansal",
+      designation: "Technical Lead",
+      department: "Technical",
+      photo: undefined,
+      socials: {}
     },
     {
       name: "Varra Srivalli",

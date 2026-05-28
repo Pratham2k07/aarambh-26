@@ -108,8 +108,22 @@ const SPEAKERS_DATA = [
 
 const SCROLL_SPEED_FACTOR = 0.25;
 
+const textVariants = {
+  initial: (dir: number) => ({ opacity: 0, y: dir * 30 }),
+  animate: { opacity: 1, y: 0 },
+  exit: (dir: number) => ({ opacity: 0, y: dir * -30 })
+};
+
+const cardVariants = {
+  initial: (dir: number) => ({ opacity: 0, x: dir * 60, scale: 0.97 }),
+  animate: { opacity: 1, x: 0, scale: 1 },
+  exit: (dir: number) => ({ opacity: 0, x: dir * -60, scale: 0.97 })
+};
+
 export default function SpeakersSection() {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const prevIndexRef = useRef(0);
+  const [direction, setDirection] = useState<1 | -1>(1); // 1 = forward, -1 = backward
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -122,11 +136,18 @@ export default function SpeakersSection() {
       if (rect.top <= 0) {
         const scrollDepth = Math.abs(rect.top);
         let newIndex = Math.floor(scrollDepth / cardChangeInterval);
-        
         newIndex = Math.max(0, Math.min(newIndex, SPEAKERS_DATA.length - 1));
-        setCurrentIndex(newIndex);
+        if (newIndex !== prevIndexRef.current) {
+          setDirection(newIndex > prevIndexRef.current ? 1 : -1);
+          prevIndexRef.current = newIndex;
+          setCurrentIndex(newIndex);
+        }
       } else {
-        setCurrentIndex(0);
+        if (prevIndexRef.current !== 0) {
+          setDirection(-1);
+          prevIndexRef.current = 0;
+          setCurrentIndex(0);
+        }
       }
     };
 
@@ -175,13 +196,15 @@ export default function SpeakersSection() {
           {/* LEFT 80% AREA */}
           <div className="w-full lg:w-[80%] h-full flex flex-col lg:flex-row items-center justify-start lg:justify-between gap-2 lg:gap-12 z-20">
             <div className="w-full lg:w-1/2 flex flex-col justify-center items-center lg:items-start text-center lg:text-left pointer-events-none shrink-0 mt-2 lg:mt-0">
-              <AnimatePresence mode="wait">
+              <AnimatePresence mode="wait" custom={direction}>
                 <motion.div
                   key={speaker.name}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.5, ease: [0.76, 0, 0.24, 1] }}
+                  custom={direction}
+                  variants={textVariants}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                  transition={{ duration: 0.45, ease: [0.4, 0, 0.2, 1] }}
                   className="flex flex-col items-center lg:items-start"
                 >
                   <div
@@ -203,8 +226,8 @@ export default function SpeakersSection() {
             </div>
 
             <div className="w-full lg:w-1/2 flex-1 lg:h-full flex justify-center lg:justify-end items-center relative min-h-[35vh]">
-              <AnimatePresence mode="popLayout">
-                <DossierCard key={speaker.name} speaker={speaker} theme={theme} />
+              <AnimatePresence mode="wait" custom={direction}>
+                <DossierCard key={speaker.name} speaker={speaker} theme={theme} direction={direction} />
               </AnimatePresence>
             </div>
           </div>
@@ -255,15 +278,17 @@ export default function SpeakersSection() {
 // ---------------------------------------------------------------------------
 // DOSSIER CARD COMPONENT
 // ---------------------------------------------------------------------------
-function DossierCard({ speaker, theme }: { speaker: any; theme: any }) {
+function DossierCard({ speaker, theme, direction }: { speaker: any; theme: any; direction: 1 | -1 }) {
   const [showBio, setShowBio] = useState(false);
 
   return (
     <motion.div
-      initial={{ scale: 0.9, opacity: 0, rotate: 2 }}
-      animate={{ scale: 1, opacity: 1, rotate: 0 }}
-      exit={{ scale: 0.9, opacity: 0 }}
-      transition={{ type: 'spring', stiffness: 200, damping: 25 }}
+      custom={direction}
+      variants={cardVariants}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      transition={{ duration: 0.45, ease: [0.4, 0, 0.2, 1] }}
       className="relative w-full max-w-[260px] sm:max-w-[320px] md:max-w-[420px] aspect-[3/4] group z-20"
     >
       {/* FRONT PHOTO BASE */}
