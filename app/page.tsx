@@ -509,15 +509,13 @@ export default function Home() {
   const [particles, setParticles] = useState<Particle[]>([]);
   const [introStarted, setIntroStarted] = useState(false);
   const [loadingComplete, setLoadingComplete] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
 
-  // Show loading screen animation only on first time visit
+  // Show loading screen animation on every page load and reload
   useEffect(() => {
-    const hasVisited = localStorage.getItem('aarambh_visited');
-    if (!hasVisited) {
-      setIntroStarted(true);
-      setLoadingComplete(false);
-      localStorage.setItem('aarambh_visited', 'true');
-    }
+    setIsMounted(true);
+    setIntroStarted(true);
+    setLoadingComplete(false);
   }, []);
 
   // Generate Mario Animation Arrays for loading screen
@@ -614,7 +612,7 @@ export default function Home() {
 
   const stickers = [
     {
-      src: "/images/july_14_21.png",
+      src: "/images/july_14_21.webp",
       alt: "14-21 July Sticker",
       type: "stamp",
       top: "16%",
@@ -625,7 +623,7 @@ export default function Home() {
       floatDelay: 0.7,
     },
     {
-      src: "/images/edition_2026.png?v=5",
+      src: "/images/edition_2026.webp",
       alt: "2026 Edition Sticker",
       type: "pow",
       top: "14%",
@@ -636,7 +634,7 @@ export default function Home() {
       floatDelay: 0,
     },
     {
-      src: "/images/first_step.png",
+      src: "/images/first_step.webp",
       alt: "First Step Sticker",
       type: "bang",
       bottom: "23%",
@@ -647,7 +645,7 @@ export default function Home() {
       floatDelay: 1.4,
     },
     {
-      src: "/images/next_dimension.png?v=4",
+      src: "/images/next_dimension.webp",
       alt: "Next Dimension Sticker",
       type: "boom",
       bottom: "20%",
@@ -667,6 +665,10 @@ export default function Home() {
     { label: 'Secs', valueKey: 'secs', bg: 'bg-brand-cloud text-brand-ink', rotate: 'rotate-2' },
   ];
 
+
+  if (!isMounted) {
+    return <div className="fixed inset-0 bg-brand-ink" />;
+  }
 
   return (
     <main className="flex flex-col items-center overflow-x-hidden relative bg-brand-cloud text-brand-ink font-sans">
@@ -688,7 +690,7 @@ export default function Home() {
               onClick={() => setLoadingComplete(true)}
               className="absolute top-6 right-6 text-xs font-mono font-bold tracking-widest uppercase bg-brand-ink text-brand-cloud/60 border border-brand-cloud/20 px-4 py-2 rounded hover:text-brand-cloud hover:border-brand-cloud/50 transition-colors z-[100]"
             >
-              SKIP INTRO &gt;&gt;
+              SKIP
             </button>
 
             <div className="relative w-full max-w-xl h-56 mt-20 border-b-4 border-brand-orange">
@@ -834,7 +836,7 @@ export default function Home() {
               className="absolute inset-0 w-full h-full"
             >
               <Image
-                src="/images/translucent_fluid_ink.png"
+                src="/images/translucent_fluid_ink.webp"
                 alt="Translucent Fluid Alcohol Ink background"
                 fill
                 priority

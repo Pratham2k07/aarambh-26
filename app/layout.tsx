@@ -8,11 +8,25 @@ export const metadata: Metadata = {
   },
   description: "Aarambh '26 is the ultimate convergence of technology, culture, and innovation. The signature first-year induction and pop-art festival at JK Lakshmipat University.",
   manifest: '/manifest.json',
+  keywords: [
+    "Aarambh", "Aarambh 2026", "Aarambh JKLU", "JK Lakshmipat University", 
+    "Aarambh Festival", "Aarambh Registration", "JKLU Induction", "College Festival Jaipur"
+  ],
+  authors: [{ name: "JKLU Tech Team" }],
+  creator: "JKLU Tech Team",
   openGraph: {
     title: "AARAMBH'26 | JK Lakshmipat University",
     description: "Aarambh '26 is the ultimate convergence of technology, culture, and innovation. The signature first-year induction and pop-art festival at JK Lakshmipat University.",
-    url: 'https://aarambh.jklu.edu.in',
+    url: 'https://aarambh-26.web.app',
     siteName: "Aarambh '26 Portal",
+    images: [
+      {
+        url: '/aarambh-2025-poster.jpg',
+        width: 1200,
+        height: 630,
+        alt: "Aarambh '26 Banner"
+      }
+    ],
     locale: 'en_IN',
     type: 'website',
   },
@@ -20,10 +34,18 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: "AARAMBH'26 | JK Lakshmipat University",
     description: "The signature first-year induction and pop-art festival at JK Lakshmipat University.",
+    images: ['/aarambh-2025-poster.jpg'],
   },
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
   }
 }
 

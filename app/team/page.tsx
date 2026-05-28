@@ -244,7 +244,7 @@ export default function TeamPage() {
               <div className="absolute bottom-0 left-0 right-0 top-14 flex items-end justify-center">
                 <div className="relative w-[110%] sm:w-[100%] h-[110%] sm:h-[105%] transition-transform duration-500 group-hover:scale-105 origin-bottom -translate-x-[8%]">
                   <Image
-                    src="/images/PNG/Vaishnavi Shukla.png"
+                    src="/Team Photos/OH/Vaishnavi Shukla.webp"
                     alt="Vaishnavi Shukla"
                     fill
                     className="object-contain object-bottom"
@@ -279,7 +279,7 @@ export default function TeamPage() {
               <div className="absolute bottom-0 left-0 right-0 top-14 flex items-end justify-center">
                 <div className="relative w-[110%] sm:w-[100%] h-[110%] sm:h-[105%] transition-transform duration-500 group-hover:scale-105 origin-bottom translate-x-[8%]">
                   <Image
-                    src="/images/PNG/Ambika Dalmia.png"
+                    src="/Team Photos/OH/Ambika Dalmia.webp"
                     alt="Ambika Dalmia"
                     fill
                     className="object-contain object-bottom"
@@ -312,7 +312,7 @@ export default function TeamPage() {
               <div className="absolute bottom-0 left-0 right-0 top-12 flex items-end justify-center">
                 <div className="relative w-[95%] sm:w-[90%] h-[105%] sm:h-[110%]">
                   <Image
-                    src="/images/PNG/Vedika Agrawal.png"
+                    src="/Team Photos/OH/Vedika Agrawal.webp"
                     alt="Vedika Agrawal"
                     fill
                     className="object-contain object-bottom transition-transform duration-500 group-hover:scale-105 origin-bottom drop-shadow-[0_12px_24px_rgba(0,0,0,0.5)]"
@@ -347,7 +347,7 @@ export default function TeamPage() {
               <div className="absolute bottom-0 left-0 right-0 top-10 flex items-end justify-center">
                 <div className="relative w-[105%] sm:w-[95%] h-[110%] sm:h-[105%] transition-transform duration-500 group-hover:scale-105 origin-bottom -translate-x-[15%]">
                   <Image
-                    src="/images/PNG/Aman Pratap Singh.png"
+                    src="/Team Photos/OH/Aman Pratap Singh.webp"
                     alt="Aman Pratap Singh"
                     fill
                     className="object-contain object-bottom drop-shadow-[0_8px_16px_rgba(0,0,0,0.4)]"
@@ -382,7 +382,7 @@ export default function TeamPage() {
               <div className="absolute bottom-0 left-0 right-0 top-10 flex items-end justify-center">
                 <div className="relative w-[105%] sm:w-[95%] h-[110%] sm:h-[105%] transition-transform duration-500 group-hover:scale-105 origin-bottom translate-x-[15%]">
                   <Image
-                    src="/images/PNG/Tanik Gupta.png"
+                    src="/Team Photos/OH/Tanik Gupta.webp"
                     alt="Tanik Gupta"
                     fill
                     className="object-contain object-bottom drop-shadow-[0_8px_16px_rgba(0,0,0,0.4)]"
