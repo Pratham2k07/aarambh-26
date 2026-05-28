@@ -84,8 +84,10 @@ implementation_plan.md
 task.md
 walkthrough.md
 
-# API Keys
+# API Keys & Spreadsheets
 *.csv
+*.xlsx
+*.xls
 
 # PWA files
 **/public/sw.js
